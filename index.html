@@ -1,0 +1,3519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#080711" />
+  <title>GTA VI — Global Task & Asset VI</title>
+  <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --bg: #080711;
+      --surface-soft: rgba(8, 7, 17, 0.58);
+      --border: rgba(255, 255, 255, 0.18);
+      --pink: #ff2a85;
+      --purple: #7b2cbf;
+      --cyan: #2cfcf0;
+      --gold: #ffc82c;
+      --text: #ffffff;
+      --muted: #f1efff;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    html {
+      min-height: 100%;
+      background-color: var(--bg);
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(180deg, rgba(8, 7, 17, 0.24) 0%, rgba(8, 7, 17, 0.45) 55%, rgba(8, 7, 17, 0.65) 100%),
+        url("gb-gtavi.webp");
+      background-position: center top;
+      background-size: cover;
+      background-repeat: no-repeat;
+      color: var(--text);
+      min-height: 100vh;
+      width: 100%;
+      padding: 14px 14px 96px 14px;
+      line-height: 1.48;
+      text-shadow: 0 1px 3px #000000, 0 2px 10px rgba(0, 0, 0, 0.95);
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .dashboard-container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #ff5ca2, #ffd147, #48fff4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.95));
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .card {
+      background: rgba(8, 7, 17, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 15px 14px 18px 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: rgba(8, 7, 17, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px;
+      margin-bottom: 18px;
+    }
+
+    .tab-btn {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(8, 7, 17, 0.4);
+      color: var(--muted);
+      padding: 10px 8px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 0.84rem;
+      cursor: pointer;
+      transition: 0.2s;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: rgba(8, 7, 17, 0.7);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--cyan);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.94rem;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+      transition: transform 0.15s, opacity 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.99);
+    }
+
+    .btn-secondary {
+      background: rgba(8, 7, 17, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #ffffff;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .btn-cyan {
+      background: linear-gradient(135deg, #0891b2, #00f5d4);
+      color: #071018;
+      text-shadow: none;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.35);
+      border: 1px solid rgba(239, 68, 68, 0.65);
+      color: #fee2e2;
+    }
+
+    .btn-sm {
+      width: auto;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      border-radius: 9px;
+    }
+
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--cyan);
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    .captcha-box {
+      background: rgba(8, 7, 17, 0.5);
+      border: 1px solid rgba(0, 245, 212, 0.4);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .captcha-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .captcha-badge {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+
+    .captcha-display-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .captcha-visual {
+      flex: 1;
+      height: 54px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1b1438, #2a1444);
+      border: 1px solid rgba(0, 245, 212, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas#captchaCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .captcha-fallback-code {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 7px;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(0, 245, 212, 0.8);
+      pointer-events: none;
+    }
+
+    .alert {
+      padding: 11px 14px;
+      border-radius: 11px;
+      font-size: 0.86rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+    }
+
+    .alert-error {
+      background: rgba(127, 29, 29, 0.85);
+      border: 1px solid rgba(248, 113, 113, 0.75);
+      color: #fef2f2;
+    }
+
+    .alert-success {
+      background: rgba(6, 78, 59, 0.85);
+      border: 1px solid rgba(52, 211, 153, 0.75);
+      color: #ecfdf5;
+    }
+
+    .rule-banner {
+      background: rgba(8, 7, 17, 0.62);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 10px 10px 0;
+      color: #fffbeb;
+      padding: 9px 12px;
+      font-size: 0.83rem;
+      margin-bottom: 14px;
+    }
+
+    .payment-info-box {
+      background: rgba(8, 7, 17, 0.65);
+      border: 1px solid rgba(0, 245, 212, 0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 0.82rem;
+    }
+
+    .countdown-box {
+      background: rgba(8, 7, 17, 0.58);
+      border: 1px solid rgba(0, 245, 212, 0.35);
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .countdown-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .countdown-value {
+      font-family: monospace;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--cyan);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: rgba(8, 7, 17, 0.52);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .stat-label {
+      font-size: 0.77rem;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+
+    .stat-value.gold {
+      color: var(--gold);
+    }
+
+    .wallet-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .community-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .commission-box {
+      background: transparent;
+      padding-top: 6px;
+      margin-top: 6px;
+    }
+
+    .ref-link-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ref-code-pill {
+      flex: 1;
+      min-width: 170px;
+      background: rgba(8, 7, 17, 0.6);
+      border: 1px dashed rgba(0, 245, 212, 0.55);
+      padding: 8px 10px;
+      border-radius: 9px;
+      font-family: monospace;
+      font-size: 0.84rem;
+      color: var(--cyan);
+      word-break: break-all;
+    }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .level-card {
+      background: rgba(8, 7, 17, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 13px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .level-card.active-level {
+      border-color: var(--cyan);
+    }
+
+    .level-title {
+      font-weight: 900;
+      font-size: 1.05rem;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .level-meta {
+      font-size: 0.85rem;
+      color: #ffffff;
+      margin-bottom: 3px;
+    }
+
+    .level-meta strong {
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .videos-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      background: rgba(8, 7, 17, 0.58);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .videos-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .video-item {
+      background: rgba(8, 7, 17, 0.58);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .video-item.watched-ready {
+      border-color: rgba(0, 245, 212, 0.55);
+    }
+
+    .video-item.submitted-done {
+      opacity: 0.85;
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .video-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-checkbox {
+      width: 21px;
+      height: 21px;
+      accent-color: var(--cyan);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .task-checkbox:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    .video-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .video-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .badge-status {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    .badge-pending {
+      background: rgba(255, 183, 3, 0.25);
+      color: #fde68a;
+    }
+
+    .badge-ready {
+      background: rgba(0, 245, 212, 0.24);
+      color: #99f6e4;
+    }
+
+    .badge-paid {
+      background: rgba(16, 185, 129, 0.28);
+      color: #a7f3d0;
+    }
+
+    .badge-refused {
+      background: rgba(239, 68, 68, 0.28);
+      color: #fecaca;
+    }
+
+    .submit-bar {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tx-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .tx-item {
+      background: rgba(8, 7, 17, 0.62);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 11px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 0.84rem;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ai-fab {
+      position: fixed;
+      right: 16px;
+      bottom: 72px;
+      z-index: 45;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 999px;
+      padding: 10px 15px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+    }
+
+    .chat-messages {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+      background: rgba(8, 7, 17, 0.65);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin: 10px 0;
+    }
+
+    .chat-msg {
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      max-width: 88%;
+      word-wrap: break-word;
+    }
+
+    .chat-msg.ai {
+      align-self: flex-start;
+      background: rgba(0, 245, 212, 0.16);
+      border: 1px solid rgba(0, 245, 212, 0.35);
+      color: var(--text);
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(8, 7, 17, 0.92);
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(8px);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 6px;
+      z-index: 40;
+    }
+
+    .nav-item-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 6px 4px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .nav-item-btn.active {
+      color: var(--cyan);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.86);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+      overflow-y: auto;
+      text-shadow: none;
+    }
+
+    .modal-card {
+      background: #121022;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .admin-modal-card {
+      max-width: 880px;
+    }
+
+    .video-player-box {
+      background: #05040a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 12px 0;
+      position: relative;
+    }
+
+    video#shortVideoPlayer {
+      width: 100%;
+      max-height: 240px;
+      display: block;
+      background: #000;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #1a1730;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--pink), var(--cyan));
+      transition: width 0.25s;
+    }
+
+    .admin-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      background: #1a1730;
+      padding: 6px;
+      border-radius: 12px;
+      margin: 12px 0;
+    }
+
+    @media (max-width: 640px) {
+      .admin-tabs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .wallet-row,
+      .community-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- SECTION AUTHENTIFICATION -->
+  <div id="authSection" class="container">
+    <div class="header">
+      <div class="brand">GTA VI</div>
+      <div class="subtitle">Global Task & Asset VI • Niveau 0 par défaut • Vidéos 1 min+ dès 9h (Lun–Sam)</div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button type="button" id="tabRegister" class="tab-btn active" onclick="switchAuthTab('register')">S'inscrire</button>
+        <button type="button" id="tabLogin" class="tab-btn" onclick="switchAuthTab('login')">Connexion</button>
+        <button type="button" id="tabDemo" class="tab-btn" onclick="startDemoMode()">Démo VIP</button>
+      </div>
+
+      <div id="authAlert" class="alert"></div>
+
+      <form id="registerForm" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="regName">Nom & Prénom complet</label>
+          <input type="text" id="regName" required />
+        </div>
+
+        <div class="form-group">
+          <label for="regContact">Numéro de téléphone ou Identifiant</label>
+          <input type="text" id="regContact" required />
+        </div>
+
+        <div class="form-group">
+          <label for="regPassword">Mot de passe (min. 6 caractères)</label>
+          <input type="password" id="regPassword" required />
+        </div>
+
+        <div class="form-group">
+          <label for="regPasswordConfirm">Confirmer le mot de passe</label>
+          <input type="password" id="regPasswordConfirm" required />
+        </div>
+
+        <div class="form-group">
+          <label for="regReferral">Code Parrainage (Optionnel)</label>
+          <input type="text" id="regReferral" />
+        </div>
+
+        <div class="captcha-box">
+          <div class="captcha-top">
+            <span class="captcha-badge">Vérification Anti-Robot</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="generateCaptcha()">Nouveau défi</button>
+          </div>
+          <div class="captcha-display-row">
+            <div class="captcha-visual">
+              <canvas id="captchaCanvas" width="260" height="54"></canvas>
+              <div id="captchaTextOverlay" class="captcha-fallback-code"></div>
+            </div>
+          </div>
+          <input type="text" id="captchaInput" autocomplete="off" required />
+        </div>
+
+        <button type="submit" class="btn">S'inscrire</button>
+      </form>
+
+      <form id="loginForm" class="hidden" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="loginContact">Numéro de téléphone ou Identifiant</label>
+          <input type="text" id="loginContact" required />
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" required />
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+          <button type="button" class="link-btn" onclick="openForgotPasswordModal()">Mot de passe oublié ?</button>
+        </div>
+
+        <button type="submit" class="btn">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SECTION APPLICATION ORGANISÉE PAR ONGLETS -->
+  <div id="dashboardSection" class="dashboard-container hidden">
+    <div class="card" style="padding: 10px 14px 12px 14px;">
+      <div class="top-bar" style="margin-bottom: 0;">
+        <div>
+          <div class="brand" style="font-size: 1.4rem; text-align: left; line-height: 1.1;">GTA VI</div>
+          <div id="userWelcome" class="subtitle" style="font-size: 0.78rem;">Bienvenue</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dashAlert" class="alert"></div>
+
+    <!-- ONGLET 1 : ACCUEIL -->
+    <div id="page-home" class="page-section">
+      <div class="card">
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Solde Disponible</div>
+            <div id="statBalance" class="stat-value">0 FCFA</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Niveau Actuel</div>
+            <div id="statLevel" class="stat-value gold">Niveau 0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Tâche du Jour</div>
+            <div id="statTasks" class="stat-value">0 / 0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Bonus Parrainage</div>
+            <div class="stat-value">10%</div>
+          </div>
+        </div>
+
+        <div class="rule-banner">
+          Nouveau compte = <strong>Niveau 0</strong> (achat d'un niveau requis pour les vidéos de <strong>1 min+</strong> • 365j). Dépôt Airtel : <strong>65472878</strong>. Dépôts & retraits : <strong>en attente</strong> jusqu'à validation admin • Retraits min. <strong>1 000 FCFA</strong> • frais <strong>5%</strong> • <strong>9h–17h</strong> (<strong>lun–sam</strong>). Tâche : <strong>1 fois/jour dès 9h</strong> (repos le <strong>dimanche</strong>).
+        </div>
+
+        <div class="wallet-row">
+          <button type="button" class="btn btn-success" onclick="openWalletModal('deposit')">Recharger (FCFA)</button>
+          <button type="button" class="btn btn-secondary" onclick="openWalletModal('withdraw')">Demander un Retrait</button>
+        </div>
+
+        <div class="community-row">
+          <a href="https://chat.whatsapp.com/L6ywCGpA1GIHZp1jBBMocy?s=cl&p=a&iam=2" target="_blank" rel="noopener noreferrer" class="btn btn-cyan">
+            Rejoindre le groupe WhatsApp
+          </a>
+          <a href="https://wa.me/16838038558" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            Service Client (+16838038558)
+          </a>
+        </div>
+      </div>
+
+      <!-- BONUS PARRAINAGE AUTOMATIQUE 10% -->
+      <div class="card">
+        <h3 style="font-size: 1rem;">Bonus Parrainage Automatique (10%)</h3>
+        <p class="subtitle">Recevez automatiquement <strong>10%</strong> dès que l'un de vos filleuls achète un niveau.</p>
+
+        <div class="commission-box">
+          <div class="stats-grid" style="margin-bottom: 8px;">
+            <div class="stat-box" style="padding: 8px 10px;">
+              <div class="stat-label">Filleuls Invités</div>
+              <div id="statReferralsCount" class="stat-value" style="font-size: 1rem;">0</div>
+            </div>
+            <div class="stat-box" style="padding: 8px 10px;">
+              <div class="stat-label">Total Bonus (10%)</div>
+              <div id="statCommissionEarned" class="stat-value gold" style="font-size: 1rem;">0 FCFA</div>
+            </div>
+          </div>
+
+          <div class="ref-link-row">
+            <div id="userReferralLinkBox" class="ref-code-pill">---</div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="copyReferralLink()">Copier</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORIQUE DES OPÉRATIONS (ACCUEIL) -->
+      <div class="card">
+        <h3 style="font-size: 1rem;">Historique des Opérations</h3>
+        <div id="homeTransactionsContainer" class="tx-list">
+          <div class="subtitle">Aucune opération enregistrée.</div>
+        </div>
+      </div>
+
+      <!-- APPLICATION MOBILE (BOUTON UNIQUE) -->
+      <div class="card">
+        <h3 style="font-size: 1rem;">Application GTA VI</h3>
+        <p class="subtitle" style="margin: 4px 0 12px;">Installez l'application GTA VI sur votre téléphone pour un accès rapide.</p>
+        <button type="button" class="btn btn-cyan" onclick="downloadApp()">Télécharger l'application</button>
+      </div>
+    </div>
+
+    <!-- ONGLET 2 : TÂCHE -->
+    <div id="page-tasks" class="page-section hidden">
+      <div class="card">
+        <div class="top-bar">
+          <div>
+            <h3 style="font-size: 1.02rem;">Tâche Vidéo (100 FCFA / vidéo • Durée 1 min+)</h3>
+            <p class="subtitle">Niveau actif requis • Vidéos d'au moins 60s • 1 session/jour dès <strong>9h00</strong> (repos le <strong>dimanche</strong>).</p>
+          </div>
+          <button type="button" id="refreshAiBtn" class="btn btn-secondary btn-sm" onclick="refreshAiVideos()">Nouvelles Vidéos</button>
+        </div>
+
+        <div class="countdown-box">
+          <div>
+            <div id="taskCountdownLabel" class="countdown-label">Statut de la session quotidienne</div>
+            <div id="taskScheduleNotice" style="font-size: 0.82rem; color: var(--text); margin-top: 2px;">---</div>
+          </div>
+          <div id="taskLiveCountdown" class="countdown-value">--:--:--</div>
+        </div>
+
+        <div class="videos-toolbar">
+          <label style="display: flex; align-items: center; gap: 8px; margin: 0; cursor: pointer;">
+            <input type="checkbox" id="selectAllCheckbox" class="task-checkbox" onchange="toggleSelectAllWatched(this.checked)" />
+            <span>Tout cocher (visionnées)</span>
+          </label>
+          <span id="selectedSummary" class="subtitle" style="color: var(--cyan); font-weight: 700;">0 cochée(s) = 0 FCFA</span>
+        </div>
+
+        <div id="videosContainer" class="videos-list"></div>
+
+        <div class="submit-bar">
+          <div id="submitInfoText" class="subtitle">100 FCFA par vidéo d'1 min+ soumise (niveau payant requis).</div>
+          <button type="button" id="submitTasksBtn" class="btn btn-success" style="max-width: 260px;" onclick="submitCheckedVideos()">
+            Soumettre (0 FCFA)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONGLET 3 : NIVEAUX (GTA VI 1 À GTA VI 7) -->
+    <div id="page-levels" class="page-section hidden">
+      <div class="card">
+        <h3 style="font-size: 1.02rem;">Niveaux Payants (365 Jours)</h3>
+        <p class="subtitle">Tous les niveaux sont payants (100 FCFA / vidéo d'1 min+ • validité 365 jours) : de <strong>GTA VI 1</strong> à <strong>GTA VI 7</strong>.</p>
+        <div id="levelsContainer" class="levels-grid"></div>
+      </div>
+    </div>
+
+    <!-- ONGLET 4 : COMPTE -->
+    <div id="page-account" class="page-section hidden">
+      <div class="card">
+        <div class="top-bar">
+          <div>
+            <h3 style="font-size: 1.02rem;">Mon Compte</h3>
+            <div id="accountDetailText" class="subtitle">---</div>
+            <div id="accountExpiryText" class="subtitle" style="color: var(--gold); margin-top: 2px;">---</div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="adminBtn" class="btn btn-sm hidden" onclick="requestAdminAccess()">Console Admin</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="logoutUser()">Déconnexion</button>
+          </div>
+        </div>
+
+        <div class="community-row">
+          <a href="https://chat.whatsapp.com/L6ywCGpA1GIHZp1jBBMocy?s=cl&p=a&iam=2" target="_blank" rel="noopener noreferrer" class="btn btn-cyan">
+            Rejoindre le groupe WhatsApp
+          </a>
+          <a href="https://wa.me/16838038558" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+            Service Client : +16838038558
+          </a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size: 1.02rem;">Historique des Opérations</h3>
+        <div id="transactionsContainer" class="tx-list">
+          <div class="subtitle">Aucune opération enregistrée.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOUTON FLOTTANT ASSISTANT IA GTA VI -->
+    <button type="button" class="ai-fab" onclick="openAiAssistant()">Assistant IA GTA VI</button>
+
+    <nav class="bottom-nav">
+      <button type="button" id="navBtn-home" class="nav-item-btn active" onclick="switchMainPage('home')">
+        <span>Accueil</span>
+      </button>
+      <button type="button" id="navBtn-tasks" class="nav-item-btn" onclick="switchMainPage('tasks')">
+        <span>Tâche</span>
+      </button>
+      <button type="button" id="navBtn-levels" class="nav-item-btn" onclick="switchMainPage('levels')">
+        <span>Niveaux</span>
+      </button>
+      <button type="button" id="navBtn-account" class="nav-item-btn" onclick="switchMainPage('account')">
+        <span>Compte</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL MOT DE PASSE OUBLIÉ -->
+  <div id="forgotPasswordModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>Récupération de Mot de Passe</h3>
+      <p class="subtitle" style="margin: 6px 0 12px;">
+        Saisissez votre identifiant/numéro et votre nom complet enregistré pour définir un nouveau mot de passe (ou contactez le support <strong>+16838038558</strong>).
+      </p>
+      <div class="form-group">
+        <label for="forgotContact">Numéro de téléphone ou Identifiant</label>
+        <input type="text" id="forgotContact" required />
+      </div>
+      <div class="form-group">
+        <label for="forgotName">Nom & Prénom complet enregistré</label>
+        <input type="text" id="forgotName" required />
+      </div>
+      <div class="form-group">
+        <label for="forgotNewPass">Nouveau mot de passe (min. 6 caractères)</label>
+        <input type="password" id="forgotNewPass" required />
+      </div>
+      <button type="button" class="btn btn-success" onclick="submitForgotPassword()">Réinitialiser le mot de passe</button>
+      <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="closeForgotPasswordModal()">Fermer</button>
+    </div>
+  </div>
+
+  <!-- MODAL ASSISTANT IA GTA VI -->
+  <div id="aiAssistantModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="top-bar" style="margin-bottom: 6px;">
+        <div>
+          <h3>Assistant IA GTA VI</h3>
+          <div id="aiLiveStatusSub" class="subtitle">Données temps réel actives • Groupe WhatsApp & Support +16838038558</div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeAiAssistant()">Fermer</button>
+      </div>
+
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+        <a href="https://chat.whatsapp.com/L6ywCGpA1GIHZp1jBBMocy?s=cl&p=a&iam=2" target="_blank" rel="noopener noreferrer" class="btn btn-cyan btn-sm">
+          Groupe WhatsApp
+        </a>
+        <a href="https://wa.me/16838038558" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+          Service Client (+16838038558)
+        </a>
+      </div>
+
+      <div id="aiChatMessages" class="chat-messages">
+        <div class="chat-msg ai">
+          Bonjour ! Je suis l'Assistant IA GTA VI connecté en temps réel. Les dépôts et retraits restent en attente jusqu'à validation par l'administrateur. Dépôt Airtel : 65472878 (Moov, MTN, Orange disponibles ultérieurement), vidéos d'1 minute minimum, bonus parrainage 10%, groupe WhatsApp officiel et service client au +16838038558.
+        </div>
+      </div>
+
+      <form class="chat-input-row" onsubmit="handleAiAssistantSend(event)">
+        <input type="text" id="aiChatInput" placeholder="Pose ta question ou demande ton état en direct..." required />
+        <button type="submit" id="aiChatSendBtn" class="btn btn-sm" style="white-space: nowrap;">Envoyer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CONNEXION CODE ADMIN -->
+  <div id="adminAuthModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3>Authentification Administrateur</h3>
+      <p class="subtitle" style="margin: 6px 0 14px;">Numéro autorisé : <strong>65472878</strong>. Entrez votre code secret pour ouvrir la console.</p>
+      <div class="form-group">
+        <label for="adminCodeInput">Code Administrateur</label>
+        <input type="password" id="adminCodeInput" autocomplete="off" />
+      </div>
+      <button type="button" class="btn" onclick="verifyAdminCode()">Valider l'accès</button>
+      <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="closeAdminAuthModal()">Annuler</button>
+    </div>
+  </div>
+
+  <!-- MODAL CONSOLE ADMIN -->
+  <div id="adminConsoleModal" class="modal-backdrop hidden">
+    <div class="modal-card admin-modal-card">
+      <div class="top-bar">
+        <div>
+          <h3>Console Administrateur GTA VI (Temps Réel)</h3>
+          <div id="adminPendingSummary" class="subtitle">Validation dépôts/retraits, comptes, mots de passe, soldes, offres de produits, filleuls & dates</div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeAdminConsole()">Fermer</button>
+      </div>
+
+      <div id="adminAlert" class="alert"></div>
+
+      <div class="form-group" style="margin-bottom: 10px;">
+        <input type="text" id="adminSearchInput" placeholder="Rechercher par numéro, nom, code parrainage ou référence..." oninput="refreshAdminActiveTab()" />
+      </div>
+
+      <div class="admin-tabs">
+        <button type="button" id="admTabUsers" class="tab-btn active" onclick="switchAdminTab('users')">Utilisateurs</button>
+        <button type="button" id="admTabReferrals" class="tab-btn" onclick="switchAdminTab('referrals')">Filleuls & Dates</button>
+        <button type="button" id="admTabRecharges" class="tab-btn" onclick="switchAdminTab('recharges')">Dépôts</button>
+        <button type="button" id="admTabWithdrawals" class="tab-btn" onclick="switchAdminTab('withdrawals')">Retraits</button>
+        <button type="button" id="admTabGrant" class="tab-btn" onclick="switchAdminTab('grant')">Offrir / Attribuer</button>
+      </div>
+
+      <div id="admContentUsers" class="tx-list"></div>
+      <div id="admContentReferrals" class="tx-list hidden"></div>
+      <div id="admContentRecharges" class="tx-list hidden"></div>
+      <div id="admContentWithdrawals" class="tx-list hidden"></div>
+
+      <div id="admContentGrant" class="hidden">
+        <div class="form-group">
+          <label for="grantPhone">Numéro ou identifiant cible</label>
+          <input type="text" id="grantPhone" placeholder="Ex : 65472878" />
+        </div>
+        <div class="form-group">
+          <label for="grantLevel">Offrir un produit / niveau (0 = Niveau 0, ou 1 à 7 pour GTA VI 1 à GTA VI 7)</label>
+          <select id="grantLevel">
+            <option value="0">0 — Niveau 0 (Aucun produit)</option>
+            <option value="1">1 — Offrir GTA VI 1 (4 vidéos/j • 365j)</option>
+            <option value="2">2 — Offrir GTA VI 2 (10 vidéos/j • 365j)</option>
+            <option value="3">3 — Offrir GTA VI 3 (25 vidéos/j • 365j)</option>
+            <option value="4">4 — Offrir GTA VI 4 (50 vidéos/j • 365j)</option>
+            <option value="5">5 — Offrir GTA VI 5 (100 vidéos/j • 365j)</option>
+            <option value="6">6 — Offrir GTA VI 6 (200 vidéos/j • 365j)</option>
+            <option value="7">7 — Offrir GTA VI 7 (330 vidéos/j • 365j)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="grantBalance">Solde à ajouter ou retirer (FCFA — utilisez un signe « - » pour retirer)</label>
+          <input type="number" id="grantBalance" value="0" />
+        </div>
+        <div class="form-group">
+          <label for="grantPassword">Nouveau mot de passe (optionnel — laisser vide pour conserver l'actuel)</label>
+          <input type="text" id="grantPassword" placeholder="Laisser vide pour ne pas modifier" />
+        </div>
+        <button type="button" class="btn btn-success" onclick="adminGrantAction()">Appliquer l'offre / attribution</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LECTEUR VIDÉO COURTE (1 MINUTE MINIMUM) -->
+  <div id="videoModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3 id="modalVideoTitle">Vidéo Courte (1 min+)</h3>
+      <p id="modalVideoCategory" class="subtitle" style="margin-top: 4px;"></p>
+
+      <div class="video-player-box">
+        <video id="shortVideoPlayer" playsinline muted loop controls></video>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="modalVideoTopic" style="font-size: 0.85rem; color: var(--cyan); font-weight: 700;">Gain : 100 FCFA • Durée min. : 60s</span>
+        <span id="modalTimerText" style="font-size: 1.1rem; font-weight: 900; color: var(--gold);">60s</span>
+      </div>
+
+      <div class="progress-bar">
+        <div id="modalProgressFill" class="progress-fill"></div>
+      </div>
+
+      <button type="button" id="confirmWatchBtn" class="btn btn-success" disabled onclick="markVideoWatched()">
+        Visionnage en cours (60s minimum)...
+      </button>
+      <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="closeVideoModal()">Fermer</button>
+    </div>
+  </div>
+
+  <!-- MODAL RECHARGE / RETRAIT -->
+  <div id="walletModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3 id="walletModalTitle">Portefeuille</h3>
+      <p id="walletModalDesc" class="subtitle" style="margin: 6px 0 10px;"></p>
+
+      <div id="depositAirtelNotice" class="payment-info-box">
+        <div><strong>Airtel Money (Actif) :</strong> Numéro de dépôt officiel <strong>65472878</strong>.</div>
+        <div style="color: var(--gold); margin-top: 4px;">Votre dépôt restera <strong>En attente</strong> jusqu'à validation par l'administrateur.</div>
+        <div class="subtitle" style="margin-top: 4px;">Moov, MTN et Orange seront disponibles ultérieurement.</div>
+      </div>
+
+      <div id="walletPreviewBox" class="rule-banner hidden"></div>
+
+      <div class="form-group">
+        <label for="walletAmount">Montant (FCFA)</label>
+        <input type="number" id="walletAmount" min="1000" step="100" oninput="updateWithdrawPreview()" />
+      </div>
+
+      <div class="form-group">
+        <label for="walletMethod">Moyen de paiement</label>
+        <select id="walletMethod">
+          <option value="Airtel Money (65472878)">Airtel Money — Dépôt : 65472878 (Actif)</option>
+          <option value="Moov Africa Money" disabled>Moov Africa Money — Disponible ultérieurement</option>
+          <option value="MTN Mobile Money" disabled>MTN Mobile Money — Disponible ultérieurement</option>
+          <option value="Orange Money" disabled>Orange Money — Disponible ultérieurement</option>
+        </select>
+      </div>
+
+      <div id="depositExtraFields">
+        <div class="form-group">
+          <label for="depositSenderNumber">Numéro ayant envoyé le dépôt</label>
+          <input type="text" id="depositSenderNumber" placeholder="Ex : 65xxxxxx" />
+        </div>
+        <div class="form-group">
+          <label for="depositRefCode">Référence / ID transaction (optionnel)</label>
+          <input type="text" id="depositRefCode" placeholder="Ex : TX123456" />
+        </div>
+      </div>
+
+      <div id="withdrawExtraFields" class="hidden">
+        <div class="form-group">
+          <label for="withdrawReceiveNumber">Numéro de réception du retrait</label>
+          <input type="text" id="withdrawReceiveNumber" placeholder="Numéro mobile de réception" />
+        </div>
+      </div>
+
+      <button type="button" class="btn" onclick="submitWalletAction()">Confirmer</button>
+      <button type="button" class="btn btn-secondary" style="margin-top: 8px;" onclick="closeWalletModal()">Annuler</button>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCV0ah2RiZkWP_mPxgr0PDMZc9TltlnAq8",
+      authDomain: "apex-wealth-e0455.firebaseapp.com",
+      databaseURL: "https://apex-wealth-e0455-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "apex-wealth-e0455",
+      storageBucket: "apex-wealth-e0455.firebasestorage.app",
+      messagingSenderId: "355511606139",
+      appId: "1:355511606139:web:58de16b3e6e1ee3a20fbde"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const GEMINI_API_KEY = ["AQ.Ab8RN6Kyc1_S6nWrOttv2nIF8wP2eG90P4FRA4krBmtR2hLKhQ"].join("");
+
+    const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/L6ywCGpA1GIHZp1jBBMocy?s=cl&p=a&iam=2";
+    const CUSTOMER_SUPPORT_PHONE = "+16838038558";
+    const AIRTEL_DEPOSIT_NUMBER = "65472878";
+
+    const ADMIN_PHONE = "65472878";
+    const ADMIN_CODE = "2251";
+
+    const PRICE_PER_VIDEO = 100;
+    const MIN_VIDEO_DURATION_SEC = 60;
+    const REFERRAL_BONUS_RATE = 0.10;
+    const WITHDRAW_FEE_RATE = 0.05;
+    const MIN_WITHDRAW_AMOUNT = 1000;
+    const CONTRACT_DAYS = 365;
+    const TASK_START_HOUR = 9;
+    const WITHDRAW_START_HOUR = 9;
+    const WITHDRAW_END_HOUR = 17;
+
+    const LEVEL_ZERO = {
+      level: 0,
+      name: "Niveau 0 — Sans Niveau",
+      price: 0,
+      videosPerDay: 0,
+      rewardPerVideo: 0,
+      durationDays: 0
+    };
+
+    const VIP_LEVELS = [
+      { level: 1, name: "GTA VI 1", price: 10000, videosPerDay: 4, rewardPerVideo: 100, durationDays: 365 },
+      { level: 2, name: "GTA VI 2", price: 30000, videosPerDay: 10, rewardPerVideo: 100, durationDays: 365 },
+      { level: 3, name: "GTA VI 3", price: 75000, videosPerDay: 25, rewardPerVideo: 100, durationDays: 365 },
+      { level: 4, name: "GTA VI 4", price: 150000, videosPerDay: 50, rewardPerVideo: 100, durationDays: 365 },
+      { level: 5, name: "GTA VI 5", price: 300000, videosPerDay: 100, rewardPerVideo: 100, durationDays: 365 },
+      { level: 6, name: "GTA VI 6", price: 600000, videosPerDay: 200, rewardPerVideo: 100, durationDays: 365 },
+      { level: 7, name: "GTA VI 7", price: 1000000, videosPerDay: 330, rewardPerVideo: 100, durationDays: 365 }
+    ];
+
+    const SHORT_VIDEOS_POOL = [
+      {
+        category: "Tech & IA • Format 1 min+",
+        title: "Capsule Vidéo (1 min+) : Automatisation & Futur Digital",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+      },
+      {
+        category: "Nature & Découverte • Format 1 min+",
+        title: "Capsule Vidéo (1 min+) : Exploration & Énergie Verte",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
+      },
+      {
+        category: "Action & Cinéma • Format 1 min+",
+        title: "Capsule Vidéo (1 min+) : Séquence Haute Définition",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+      },
+      {
+        category: "Lifestyle & Fun • Format 1 min+",
+        title: "Capsule Vidéo (1 min+) : Divertissement & Stratégie",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+      },
+      {
+        category: "Innovation • Format 1 min+",
+        title: "Capsule Vidéo (1 min+) : Tendances Mobiles & Créateurs",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+      }
+    ];
+
+    let currentCaptchaCode = "";
+    let currentUser = null;
+    let walletMode = "deposit";
+    let activeVideoIndex = null;
+    let videoTimerInterval = null;
+    let liveCountdownInterval = null;
+    let deferredInstallPrompt = null;
+    let lastLiveStateKey = "";
+    let demoTransactions = [];
+    let allUsersCache = {};
+    let rechargesCache = {};
+    let withdrawalsCache = {};
+    let activeAdminTab = "users";
+
+    function normalizeGtaviCode(rawCode, fallbackKey = "2026") {
+      const clean = String(rawCode || "").trim();
+      if (!clean) return "";
+      if (/apex/i.test(clean)) {
+        const suffix = clean.replace(/apex[-_]?/i, "") || String(fallbackKey).slice(-4) || Math.floor(1000 + Math.random() * 9000);
+        return "GTAVI-" + suffix;
+      }
+      return clean;
+    }
+
+    function getLevelObjByNumber(num) {
+      const n = Number(num);
+      if (!n || n <= 0) return LEVEL_ZERO;
+      return VIP_LEVELS.find(l => l.level === n) || LEVEL_ZERO;
+    }
+
+    function computeExpiryIso(days = CONTRACT_DAYS) {
+      return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    function isExpired(expiresAtIso) {
+      if (!expiresAtIso) return false;
+      const t = new Date(expiresAtIso).getTime();
+      return !isNaN(t) && Date.now() > t;
+    }
+
+    function getRemainingDays(expiresAtIso) {
+      if (!expiresAtIso) return CONTRACT_DAYS;
+      const t = new Date(expiresAtIso).getTime();
+      if (isNaN(t)) return CONTRACT_DAYS;
+      return Math.max(0, Math.ceil((t - Date.now()) / (24 * 60 * 60 * 1000)));
+    }
+
+    function formatDateFrench(isoOrStr) {
+      if (!isoOrStr) return "Date non renseignée";
+      const d = new Date(isoOrStr);
+      if (isNaN(d.getTime())) return String(isoOrStr);
+      return d.toLocaleString("fr-FR");
+    }
+
+    function checkAndApplyLevelExpiration(userObj) {
+      if (!userObj) return false;
+      if (Number(userObj.level) >= 1 && userObj.levelExpiresAt && isExpired(userObj.levelExpiresAt)) {
+        userObj.level = 0;
+        userObj.contractDays = 0;
+        userObj.levelExpiresAt = "";
+        userObj.dailyVideos = [];
+        userObj.dailyTaskCompletedDate = "";
+        return true;
+      }
+      return false;
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+    });
+
+    function downloadApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then(() => {
+          deferredInstallPrompt = null;
+        });
+        return;
+      }
+      showAlert(
+        "dashAlert",
+        "Pour installer GTA VI : ouvrez le menu de votre navigateur (⋮) puis sélectionnez « Ajouter à l'écran d'accueil » ou « Installer l'application ».",
+        "success"
+      );
+    }
+
+    function getTodayDateKey() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDurationHMS(totalSeconds) {
+      const sec = Math.max(0, Math.floor(totalSeconds));
+      const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function getNextTaskOpenDate() {
+      const now = new Date();
+      const candidate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), TASK_START_HOUR, 0, 0, 0);
+
+      if (now >= candidate) {
+        candidate.setDate(candidate.getDate() + 1);
+      }
+
+      while (candidate.getDay() === 0) {
+        candidate.setDate(candidate.getDate() + 1);
+      }
+
+      return candidate;
+    }
+
+    function getTaskAvailabilityStatus() {
+      const now = new Date();
+      const day = now.getDay();
+      const hour = now.getHours();
+      const minutes = now.getMinutes();
+      const currentMinutes = hour * 60 + minutes;
+      const startMinutes = TASK_START_HOUR * 60;
+      const lvl = getCurrentLevelObj();
+      const hasPaidLevel = lvl.level >= 1 && lvl.videosPerDay > 0;
+      const completedToday = Boolean(currentUser && currentUser.dailyTaskCompletedDate === getTodayDateKey());
+
+      const nextOpen = getNextTaskOpenDate();
+      const remainingSec = Math.max(0, Math.floor((nextOpen.getTime() - now.getTime()) / 1000));
+
+      if (!hasPaidLevel) {
+        return {
+          allowed: false,
+          mode: "no_level",
+          remainingSec,
+          label: "Niveau 0 — Achat d'un niveau requis",
+          reason: "Vous êtes au Niveau 0. Achetez un niveau (GTA VI 1 à GTA VI 7) dans l'onglet « Niveaux » pour débloquer les tâches."
+        };
+      }
+      if (day === 0) {
+        return {
+          allowed: false,
+          mode: "sunday",
+          remainingSec,
+          label: "Repos dominical — Ouverture lundi à 9h00",
+          reason: "Aucune tâche n'est disponible le dimanche. Ouverture lundi à partir de 9h00."
+        };
+      }
+      if (currentMinutes < startMinutes) {
+        return {
+          allowed: false,
+          mode: "before9h",
+          remainingSec,
+          label: "Ouverture des tâches à 9h00 dans",
+          reason: `Les tâches quotidiennes ouvrent à 9h00. Heure actuelle : ${String(hour).padStart(2, "0")}h${String(minutes).padStart(2, "0")}.`
+        };
+      }
+      if (completedToday) {
+        return {
+          allowed: false,
+          mode: "completed",
+          remainingSec,
+          label: "Session terminée — Prochaine ouverture dans",
+          reason: "Tâches quotidiennes déjà effectuées aujourd'hui (1 fois/jour). Prochaine session à partir de 9h00 (hors dimanche)."
+        };
+      }
+      return {
+        allowed: true,
+        mode: "open",
+        remainingSec: 0,
+        label: "Session quotidienne ouverte (vidéos 1 min+ • dès 9h)",
+        reason: "Session quotidienne ouverte (1 fois par jour à partir de 9h00, du lundi au samedi — vidéos d'1 min minimum)."
+      };
+    }
+
+    function updateLiveTaskCountdown() {
+      const countdownEl = document.getElementById("taskLiveCountdown");
+      const labelEl = document.getElementById("taskCountdownLabel");
+      if (!countdownEl || !labelEl || !currentUser) return;
+
+      checkAndApplyLevelExpiration(currentUser);
+      ensureDailyTaskCycle();
+      const sched = getTaskAvailabilityStatus();
+      labelEl.textContent = sched.label;
+
+      if (sched.allowed) {
+        countdownEl.textContent = "OUVERT";
+      } else if (sched.mode === "no_level") {
+        countdownEl.textContent = "NIVEAU 0";
+      } else {
+        countdownEl.textContent = formatDurationHMS(sched.remainingSec);
+      }
+
+      const stateKey = `${getTodayDateKey()}|${sched.mode}|${currentUser.level}|${currentUser.dailyTaskCompletedDate || ""}`;
+      if (stateKey !== lastLiveStateKey) {
+        lastLiveStateKey = stateKey;
+        renderDashboard();
+      }
+    }
+
+    function getWithdrawAvailabilityStatus() {
+      const now = new Date();
+      const day = now.getDay();
+      const hour = now.getHours();
+      const minutes = now.getMinutes();
+      const currentMinutes = hour * 60 + minutes;
+      const startMinutes = WITHDRAW_START_HOUR * 60;
+      const endMinutes = WITHDRAW_END_HOUR * 60;
+
+      if (day === 0) {
+        return {
+          allowed: false,
+          reason: "Les retraits sont fermés le dimanche. Horaires autorisés : du lundi au samedi de 9h à 17h."
+        };
+      }
+      if (currentMinutes < startMinutes || currentMinutes > endMinutes) {
+        return {
+          allowed: false,
+          reason: `Les retraits sont autorisés uniquement de 9h à 17h (heure actuelle : ${String(hour).padStart(2, "0")}h${String(minutes).padStart(2, "0")}).`
+        };
+      }
+      return {
+        allowed: true,
+        reason: "Horaires de retrait ouverts (9h–17h, lundi–samedi). Minimum : 1 000 FCFA • Frais : 5% • Validation admin requise."
+      };
+    }
+
+    function ensureDailyTaskCycle() {
+      if (!currentUser) return;
+      const today = getTodayDateKey();
+      const lvl = getCurrentLevelObj();
+
+      if (lvl.level === 0 || lvl.videosPerDay === 0) {
+        currentUser.dailyVideos = [];
+        return;
+      }
+
+      if (currentUser.taskCycleDate !== today) {
+        currentUser.taskCycleDate = today;
+        currentUser.dailyTaskCompletedDate = "";
+        currentUser.aiSeed = (Number(currentUser.aiSeed) || 0) + 1;
+        currentUser.dailyVideos = generateDailyAiVideos(lvl, currentUser.aiSeed);
+      } else if (!Array.isArray(currentUser.dailyVideos) || currentUser.dailyVideos.length !== lvl.videosPerDay) {
+        currentUser.dailyVideos = generateDailyAiVideos(lvl, Number(currentUser.aiSeed) || 0);
+      } else {
+        currentUser.dailyVideos.forEach(v => {
+          if (!v.durationSec || v.durationSec < MIN_VIDEO_DURATION_SEC) {
+            v.durationSec = MIN_VIDEO_DURATION_SEC;
+          }
+        });
+      }
+    }
+
+    function switchMainPage(pageName) {
+      const pages = ["home", "tasks", "levels", "account"];
+      pages.forEach(p => {
+        const sec = document.getElementById("page-" + p);
+        const btn = document.getElementById("navBtn-" + p);
+        if (sec) sec.classList.add("hidden");
+        if (btn) btn.classList.remove("active");
+      });
+      const activeSec = document.getElementById("page-" + pageName);
+      const activeBtn = document.getElementById("navBtn-" + pageName);
+      if (activeSec) activeSec.classList.remove("hidden");
+      if (activeBtn) activeBtn.classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function sanitizeKey(contact) {
+      return String(contact || "").trim().replace(/[.#$[\]]/g, "_");
+    }
+
+    function isAdminSession() {
+      return Boolean(currentUser && !currentUser.isDemo && String(currentUser.contact).trim() === ADMIN_PHONE);
+    }
+
+    function persistCurrentUser() {
+      if (!currentUser) return;
+      currentUser.referralCode = normalizeGtaviCode(currentUser.referralCode, sanitizeKey(currentUser.contact)) || ("GTAVI-" + Math.floor(1000 + Math.random() * 9000));
+      if (currentUser.isDemo) {
+        sessionStorage.setItem("gtavi_demo_user_fb", JSON.stringify(currentUser));
+        return;
+      }
+      const key = sanitizeKey(currentUser.contact);
+      if (!key) return;
+      sessionStorage.setItem("gtavi_session_key_fb", key);
+      db.ref("users/" + key).update({
+        name: currentUser.name,
+        contact: currentUser.contact,
+        referralCode: currentUser.referralCode,
+        balance: Number(currentUser.balance) || 0,
+        commissionEarned: Number(currentUser.commissionEarned) || 0,
+        level: Number(currentUser.level) || 0,
+        contractDays: Number(currentUser.contractDays) || 0,
+        levelExpiresAt: currentUser.levelExpiresAt || "",
+        aiSeed: Number(currentUser.aiSeed) || 0,
+        taskCycleDate: currentUser.taskCycleDate || getTodayDateKey(),
+        dailyTaskCompletedDate: currentUser.dailyTaskCompletedDate || "",
+        dailyVideos: currentUser.dailyVideos || [],
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    function startLiveRealtimeListeners() {
+      db.ref("users").off();
+      db.ref("users").on("value", snap => {
+        allUsersCache = snap.exists() ? snap.val() : {};
+        if (currentUser && !currentUser.isDemo) {
+          const myKey = sanitizeKey(currentUser.contact);
+          const fresh = allUsersCache[myKey];
+          if (fresh) {
+            const prevLevel = currentUser.level;
+            const nextLevel = Number(fresh.level) || 0;
+            currentUser.balance = Number(fresh.balance) || 0;
+            currentUser.commissionEarned = Number(fresh.commissionEarned) || 0;
+            currentUser.level = nextLevel;
+            currentUser.levelExpiresAt = fresh.levelExpiresAt || "";
+            currentUser.contractDays = nextLevel >= 1
+              ? (fresh.levelExpiresAt ? getRemainingDays(fresh.levelExpiresAt) : (Number(fresh.contractDays) || CONTRACT_DAYS))
+              : 0;
+            currentUser.name = fresh.name || currentUser.name;
+            if (fresh.pass || fresh.password) {
+              currentUser.pass = fresh.pass || fresh.password;
+            }
+            checkAndApplyLevelExpiration(currentUser);
+            if (prevLevel !== currentUser.level) {
+              const lvlObj = getLevelObjByNumber(currentUser.level);
+              currentUser.dailyVideos = currentUser.level >= 1
+                ? (Array.isArray(fresh.dailyVideos) && fresh.dailyVideos.length === lvlObj.videosPerDay
+                    ? fresh.dailyVideos
+                    : generateDailyAiVideos(lvlObj, (Number(fresh.aiSeed) || 0) + 1))
+                : [];
+            }
+            renderDashboard();
+          }
+          refreshReferralStats();
+        }
+        updateAiLiveBadge();
+        if (isAdminSession() && !document.getElementById("adminConsoleModal").classList.contains("hidden")) {
+          refreshAdminActiveTab();
+        }
+      });
+
+      db.ref("recharges").off();
+      db.ref("recharges").on("value", snap => {
+        rechargesCache = snap.exists() ? snap.val() : {};
+        updateAiLiveBadge();
+        if (isAdminSession() && !document.getElementById("adminConsoleModal").classList.contains("hidden")) {
+          refreshAdminActiveTab();
+        }
+      });
+
+      db.ref("withdrawals").off();
+      db.ref("withdrawals").on("value", snap => {
+        withdrawalsCache = snap.exists() ? snap.val() : {};
+        updateAiLiveBadge();
+        if (isAdminSession() && !document.getElementById("adminConsoleModal").classList.contains("hidden")) {
+          refreshAdminActiveTab();
+        }
+      });
+    }
+
+    function updateAiLiveBadge() {
+      const sub = document.getElementById("aiLiveStatusSub");
+      const pendingRec = Object.values(rechargesCache || {}).filter(r => r && r.status === "En attente").length;
+      const pendingWith = Object.values(withdrawalsCache || {}).filter(w => w && w.status === "En attente").length;
+      const totalUsers = Object.keys(allUsersCache || {}).length;
+
+      if (sub) {
+        sub.textContent = `Temps réel actif (${totalUsers} comptes • ${pendingRec} dépôt(s) en attente • ${pendingWith} retrait(s) en attente) • Support ${CUSTOMER_SUPPORT_PHONE}`;
+      }
+      const admSummary = document.getElementById("adminPendingSummary");
+      if (admSummary) {
+        admSummary.textContent = `${totalUsers} compte(s) • ${pendingRec} dépôt(s) en attente • ${pendingWith} retrait(s) en attente`;
+      }
+      const tabRec = document.getElementById("admTabRecharges");
+      const tabWith = document.getElementById("admTabWithdrawals");
+      if (tabRec) tabRec.textContent = pendingRec > 0 ? `Dépôts (${pendingRec})` : "Dépôts";
+      if (tabWith) tabWith.textContent = pendingWith > 0 ? `Retraits (${pendingWith})` : "Retraits";
+    }
+
+    function renderTransactionsList(entries) {
+      const targets = [
+        document.getElementById("transactionsContainer"),
+        document.getElementById("homeTransactionsContainer")
+      ];
+      targets.forEach(container => {
+        if (!container) return;
+        container.innerHTML = "";
+        if (!entries || entries.length === 0) {
+          container.innerHTML = `<div class="subtitle">Aucune opération enregistrée.</div>`;
+          return;
+        }
+        entries.forEach(tx => {
+          const div = document.createElement("div");
+          div.className = "tx-item";
+          const amt = Number(tx.amount) || 0;
+          const statusLabel = tx.status || "En attente";
+          const badgeClass = statusLabel === "Validé" || statusLabel === "Offert"
+            ? "badge-paid"
+            : statusLabel === "Refusé"
+              ? "badge-refused"
+              : "badge-pending";
+
+          const reasonHtml = tx.note
+            ? `<div class="subtitle" style="font-size: 0.73rem; color: #fecaca; margin-top: 2px;">Motif : ${tx.note}</div>`
+            : "";
+
+          div.innerHTML = `
+            <div>
+              <strong>${tx.type}</strong>
+              <div class="subtitle" style="font-size: 0.74rem;">${tx.date || ""} • <span class="badge-status ${badgeClass}">${statusLabel}</span></div>
+              ${reasonHtml}
+            </div>
+            <strong style="color: ${amt >= 0 ? "var(--cyan)" : "var(--gold)"};">${amt >= 0 ? "+" : ""}${amt.toLocaleString("fr-FR")} FCFA</strong>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function logTransaction(type, amount, status = "En attente", txId = "", note = "") {
+      if (!currentUser) return null;
+      const entry = {
+        type,
+        amount: Number(amount),
+        date: new Date().toLocaleString(),
+        status,
+        txId: txId || "",
+        note: note || ""
+      };
+      if (currentUser.isDemo) {
+        demoTransactions.unshift(entry);
+        renderTransactionsList(demoTransactions.slice(0, 25));
+        return null;
+      }
+      const key = sanitizeKey(currentUser.contact);
+      return db.ref("transactions/" + key).push(entry);
+    }
+
+    function updateUserTransactionById(userKey, txId, updates) {
+      if (!userKey || !txId) return;
+      db.ref("transactions/" + userKey).orderByChild("txId").equalTo(txId).once("value").then(snap => {
+        if (!snap.exists()) return;
+        snap.forEach(child => {
+          child.ref.update(updates);
+        });
+      });
+    }
+
+    function listenUserTransactions(contact) {
+      const key = sanitizeKey(contact);
+      db.ref("transactions/" + key).off();
+      db.ref("transactions/" + key).on("value", snap => {
+        if (!snap.exists()) {
+          renderTransactionsList([]);
+          return;
+        }
+        const entries = Object.values(snap.val()).reverse().slice(0, 25);
+        renderTransactionsList(entries);
+      });
+    }
+
+    function showAlert(elementId, message, type = "error") {
+      const el = document.getElementById(elementId);
+      el.textContent = message;
+      el.className = `alert show alert-${type}`;
+    }
+
+    function hideAlert(elementId) {
+      const el = document.getElementById(elementId);
+      el.className = "alert";
+      el.textContent = "";
+    }
+
+    function switchAuthTab(tab) {
+      hideAlert("authAlert");
+      const regForm = document.getElementById("registerForm");
+      const loginForm = document.getElementById("loginForm");
+      const tabReg = document.getElementById("tabRegister");
+      const tabLog = document.getElementById("tabLogin");
+
+      if (tab === "register") {
+        regForm.classList.remove("hidden");
+        loginForm.classList.add("hidden");
+        tabReg.classList.add("active");
+        tabLog.classList.remove("active");
+        generateCaptcha();
+      } else {
+        regForm.classList.add("hidden");
+        loginForm.classList.remove("hidden");
+        tabLog.classList.add("active");
+        tabReg.classList.remove("active");
+      }
+    }
+
+    function openForgotPasswordModal() {
+      document.getElementById("forgotContact").value = document.getElementById("loginContact").value.trim();
+      document.getElementById("forgotName").value = "";
+      document.getElementById("forgotNewPass").value = "";
+      document.getElementById("forgotPasswordModal").classList.remove("hidden");
+    }
+
+    function closeForgotPasswordModal() {
+      document.getElementById("forgotPasswordModal").classList.add("hidden");
+    }
+
+    function submitForgotPassword() {
+      const contact = document.getElementById("forgotContact").value.trim();
+      const fullName = document.getElementById("forgotName").value.trim().toLowerCase();
+      const newPass = document.getElementById("forgotNewPass").value.trim();
+
+      if (!contact || !fullName) {
+        showAlert("authAlert", "Veuillez renseigner votre identifiant/numéro et votre nom complet.");
+        closeForgotPasswordModal();
+        return;
+      }
+      if (newPass.length < 6) {
+        showAlert("authAlert", "Le nouveau mot de passe doit contenir au moins 6 caractères.");
+        closeForgotPasswordModal();
+        return;
+      }
+
+      const key = sanitizeKey(contact);
+      db.ref("users/" + key).once("value").then(snap => {
+        if (!snap.exists()) {
+          showAlert("authAlert", "Aucun compte trouvé avec cet identifiant.");
+          closeForgotPasswordModal();
+          return;
+        }
+        const data = snap.val();
+        const storedName = String(data.name || "").trim().toLowerCase();
+        if (!storedName || storedName !== fullName) {
+          showAlert("authAlert", "Le nom complet ne correspond pas au compte. Contactez le support +16838038558.");
+          closeForgotPasswordModal();
+          return;
+        }
+        db.ref("users/" + key).update({
+          pass: newPass,
+          password: newPass,
+          updatedAt: new Date().toISOString()
+        }).then(() => {
+          closeForgotPasswordModal();
+          document.getElementById("loginContact").value = contact;
+          document.getElementById("loginPassword").value = newPass;
+          showAlert("authAlert", "Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.", "success");
+        });
+      });
+    }
+
+    function generateCaptcha() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 5; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      currentCaptchaCode = code;
+
+      const overlay = document.getElementById("captchaTextOverlay");
+      if (overlay) {
+        overlay.textContent = code;
+      }
+
+      const canvas = document.getElementById("captchaCanvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, "#1b1338");
+      grad.addColorStop(1, "#2c1245");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      for (let i = 0; i < 5; i++) {
+        ctx.strokeStyle = i % 2 === 0 ? "rgba(0, 245, 212, 0.35)" : "rgba(255, 42, 133, 0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(Math.random() * w, Math.random() * h);
+        ctx.lineTo(Math.random() * w, Math.random() * h);
+        ctx.stroke();
+      }
+
+      ctx.font = "900 24px monospace";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      const spacing = w / (code.length + 1);
+
+      for (let i = 0; i < code.length; i++) {
+        const x = spacing * (i + 1);
+        const y = h / 2 + (Math.random() * 8 - 4);
+        const angle = (Math.random() * 24 - 12) * (Math.PI / 180);
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.fillStyle = i % 2 === 0 ? "#ffffff" : "#00f5d4";
+        ctx.fillText(code[i], 0, 0);
+        ctx.restore();
+      }
+
+      if (overlay) {
+        overlay.style.opacity = "0.25";
+      }
+    }
+
+    function generateDailyAiVideos(levelObj, seedOffset = 0, customTopics = null) {
+      if (!levelObj || levelObj.level === 0 || !levelObj.videosPerDay) return [];
+      const todayKey = getTodayDateKey();
+      const list = [];
+      for (let i = 0; i < levelObj.videosPerDay; i++) {
+        const fallback = SHORT_VIDEOS_POOL[(i + seedOffset) % SHORT_VIDEOS_POOL.length];
+        const aiItem = Array.isArray(customTopics) && customTopics[i] ? customTopics[i] : null;
+        list.push({
+          id: `${todayKey}-L${levelObj.level}-${i + 1}-${seedOffset}`,
+          title: (aiItem && aiItem.title) ? aiItem.title : `${fallback.title} #${i + 1}`,
+          category: (aiItem && aiItem.category) ? aiItem.category : fallback.category,
+          videoUrl: fallback.videoUrl,
+          durationSec: MIN_VIDEO_DURATION_SEC,
+          reward: PRICE_PER_VIDEO,
+          watched: false,
+          checked: false,
+          submitted: false
+        });
+      }
+      return list;
+    }
+
+    async function fetchGeminiVideoTopics(count, levelName) {
+      if (!GEMINI_API_KEY || !count) return null;
+      const sampleCount = Math.min(count, 10);
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+      const prompt = `Génère ${sampleCount} titres et catégories courts de vidéos (durée 1 minute minimum / 60s) pour une tâche quotidienne sur "${levelName}". Réponds UNIQUEMENT en JSON valide sous forme de tableau d'objets {"title":"...","category":"..."} en français.`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+
+      if (!res.ok) throw new Error("Gemini API HTTP " + res.status);
+      const data = await res.json();
+      const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    }
+
+    function openAiAssistant() {
+      updateAiLiveBadge();
+      document.getElementById("aiAssistantModal").classList.remove("hidden");
+      document.getElementById("aiChatInput").focus();
+    }
+
+    function closeAiAssistant() {
+      document.getElementById("aiAssistantModal").classList.add("hidden");
+    }
+
+    function appendChatBubble(text, sender = "ai") {
+      const box = document.getElementById("aiChatMessages");
+      const div = document.createElement("div");
+      div.className = `chat-msg ${sender}`;
+      div.textContent = text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function buildRealtimeLiveSnapshot() {
+      const lvl = currentUser ? getCurrentLevelObj() : LEVEL_ZERO;
+      const bal = currentUser ? Number(currentUser.balance) || 0 : 0;
+      const comm = currentUser ? Number(currentUser.commissionEarned) || 0 : 0;
+      const contact = currentUser ? currentUser.contact : "Non connecté";
+      const refCode = currentUser ? currentUser.referralCode : "N/A";
+      const totalAccounts = Object.keys(allUsersCache || {}).length;
+      const pendingDep = Object.values(rechargesCache || {}).filter(r => r && r.status === "En attente").length;
+      const pendingRet = Object.values(withdrawalsCache || {}).filter(w => w && w.status === "En attente").length;
+
+      let myReferralsCount = 0;
+      if (currentUser && currentUser.referralCode) {
+        myReferralsCount = Object.values(allUsersCache || {}).filter(
+          u => u && normalizeGtaviCode(u.invitedBy, "") === currentUser.referralCode
+        ).length;
+      }
+
+      return {
+        contact,
+        levelName: lvl.name,
+        balance: bal,
+        commission: comm,
+        refCode,
+        myReferralsCount,
+        totalAccounts,
+        pendingDep,
+        pendingRet,
+        whatsappGroup: WHATSAPP_GROUP_URL,
+        supportPhone: CUSTOMER_SUPPORT_PHONE,
+        airtelDeposit: AIRTEL_DEPOSIT_NUMBER
+      };
+    }
+
+    function getLocalAssistantFallback(question) {
+      const q = question.toLowerCase();
+      const live = buildRealtimeLiveSnapshot();
+
+      if (q.includes("whatsapp") || q.includes("groupe")) {
+        return `Voici le lien officiel pour rejoindre le groupe WhatsApp GTA VI : ${live.whatsappGroup}`;
+      }
+      if (q.includes("client") || q.includes("support") || q.includes("contact") || q.includes("aide") || q.includes("numéro") || q.includes("numero")) {
+        return `Notre service client est disponible au ${live.supportPhone} (WhatsApp / appel). Pour les dépôts Airtel Money, le numéro officiel est ${live.airtelDeposit}.`;
+      }
+      if (q.includes("attente") || q.includes("dépôt") || q.includes("depot") || q.includes("retrait") || q.includes("valid")) {
+        return `Les demandes de dépôt et de retrait restent « En attente » chez les investisseurs et sont validées uniquement par l'administrateur (${live.pendingDep} dépôt(s) et ${live.pendingRet} retrait(s) actuellement en attente).`;
+      }
+      if (q.includes("solde") || q.includes("niveau") || q.includes("filleul") || q.includes("temps réel") || q.includes("temps reel") || q.includes("mon compte")) {
+        return `État en temps réel (${live.contact}) : ${live.levelName}, solde ${live.balance.toLocaleString("fr-FR")} FCFA, bonus parrainage ${live.commission.toLocaleString("fr-FR")} FCFA, ${live.myReferralsCount} filleul(s) direct(s). Plateforme : ${live.totalAccounts} compte(s), ${live.pendingDep} dépôt(s) en attente, ${live.pendingRet} retrait(s) en attente.`;
+      }
+      if (q.includes("durée") || q.includes("duree") || q.includes("minute") || q.includes("60s") || q.includes("vidéo") || q.includes("video")) {
+        return "Chaque vidéo de tâche dure au minimum 1 minute (60 secondes) pour 100 FCFA par vidéo, accessible dès 9h00 du lundi au samedi (repos le dimanche) avec un niveau payant actif (valable 365 jours).";
+      }
+      return `Assistant IA GTA VI (temps réel) : ${live.levelName}, solde ${live.balance.toLocaleString("fr-FR")} FCFA. Dépôts/retraits en attente jusqu'à validation admin. Groupe WhatsApp : ${live.whatsappGroup} • Service client : ${live.supportPhone} • Dépôt Airtel : ${live.airtelDeposit}.`;
+    }
+
+    async function handleAiAssistantSend(event) {
+      event.preventDefault();
+      const input = document.getElementById("aiChatInput");
+      const sendBtn = document.getElementById("aiChatSendBtn");
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+
+      appendChatBubble(userMsg, "user");
+      input.value = "";
+      sendBtn.disabled = true;
+
+      const live = buildRealtimeLiveSnapshot();
+      const systemContext = `Tu es l'Assistant IA central de GTA VI, connecté en temps réel à la base de données et à la gestion du site. Réponds en français de manière claire et précise.
+Données en temps réel actuelles :
+- Membre connecté : ${live.contact} | Produit/Niveau : ${live.levelName} | Solde : ${live.balance.toLocaleString("fr-FR")} FCFA | Bonus parrainage : ${live.commission.toLocaleString("fr-FR")} FCFA | Filleuls directs : ${live.myReferralsCount} | Code parrainage : ${live.refCode}
+- État global plateforme : ${live.totalAccounts} comptes enregistrés, ${live.pendingDep} dépôt(s) en attente, ${live.pendingRet} retrait(s) en attente.
+Règles officielles GTA VI :
+1) Les dépôts et retraits restent « En attente » chez les investisseurs et sont validés uniquement par l'administrateur.
+2) Groupe WhatsApp officiel : ${live.whatsappGroup}.
+3) Service client : ${live.supportPhone}.
+4) Dépôts : Airtel Money actif sur le numéro ${live.airtelDeposit} ; Moov, MTN et Orange seront disponibles ultérieurement.
+5) Vidéos de tâche : durée d'1 minute minimum (60 secondes), 100 FCFA/vidéo, 1 fois/jour dès 9h00 du lundi au samedi (repos le dimanche), niveau payant GTA VI 1 à GTA VI 7 requis (valable 365 jours ; nouveaux comptes = Niveau 0).
+6) Bonus parrainage automatique de 10% à l'achat d'un niveau. Retraits : min. 1 000 FCFA, frais 5%, 9h–17h lun–sam.`;
+
+      try {
+        if (!GEMINI_API_KEY) throw new Error("Clé absente");
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemContext }] },
+            contents: [{ parts: [{ text: userMsg }] }]
+          })
+        });
+        if (!res.ok) throw new Error("Erreur réseau");
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        appendChatBubble(reply || getLocalAssistantFallback(userMsg), "ai");
+      } catch {
+        appendChatBubble(getLocalAssistantFallback(userMsg), "ai");
+      } finally {
+        sendBtn.disabled = false;
+      }
+    }
+
+    function handleRegister(event) {
+      event.preventDefault();
+      hideAlert("authAlert");
+
+      const name = document.getElementById("regName").value.trim();
+      const contact = document.getElementById("regContact").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const passwordConfirm = document.getElementById("regPasswordConfirm").value;
+      const referral = normalizeGtaviCode(document.getElementById("regReferral").value.trim(), "");
+      const captchaInput = document.getElementById("captchaInput").value.trim().toUpperCase();
+
+      if (password.length < 6) {
+        showAlert("authAlert", "Le mot de passe doit contenir au moins 6 caractères.");
+        return;
+      }
+
+      if (password !== passwordConfirm) {
+        showAlert("authAlert", "Les deux mots de passe ne correspondent pas.");
+        return;
+      }
+
+      if (!captchaInput || captchaInput !== currentCaptchaCode) {
+        showAlert("authAlert", "Code anti-robot incorrect. Veuillez réessayer.");
+        generateCaptcha();
+        document.getElementById("captchaInput").value = "";
+        return;
+      }
+
+      const key = sanitizeKey(contact);
+      db.ref("users/" + key).once("value").then(snap => {
+        if (snap.exists()) {
+          showAlert("authAlert", "Ce numéro ou identifiant est déjà enregistré. Connectez-vous.");
+          return;
+        }
+
+        const today = getTodayDateKey();
+        const nowIso = new Date().toISOString();
+        const newUser = {
+          name,
+          contact,
+          phone: contact,
+          pass: password,
+          invitedBy: referral,
+          referralCode: "GTAVI-" + Math.floor(1000 + Math.random() * 9000),
+          balance: 0,
+          commissionEarned: 0,
+          level: 0,
+          contractDays: 0,
+          levelExpiresAt: "",
+          aiSeed: 0,
+          taskCycleDate: today,
+          dailyTaskCompletedDate: "",
+          dailyVideos: [],
+          createdAt: nowIso,
+          updatedAt: nowIso
+        };
+
+        db.ref("users/" + key).set(newUser).then(() => {
+          currentUser = { ...newUser, isDemo: false };
+          sessionStorage.setItem("gtavi_session_key_fb", key);
+          openDashboard();
+        });
+      });
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+      hideAlert("authAlert");
+
+      const contact = document.getElementById("loginContact").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const key = sanitizeKey(contact);
+
+      db.ref("users/" + key).once("value").then(snap => {
+        if (!snap.exists()) {
+          showAlert("authAlert", "Compte introuvable dans Firebase.");
+          return;
+        }
+        const data = snap.val();
+        const storedPass = data.pass || data.password || "";
+        if (storedPass !== password) {
+          showAlert("authAlert", "Mot de passe incorrect.");
+          return;
+        }
+
+        const lvl = getLevelObjByNumber(data.level);
+        const today = getTodayDateKey();
+        const isSameDay = data.taskCycleDate === today;
+        const videos = lvl.level >= 1 && isSameDay && Array.isArray(data.dailyVideos) && data.dailyVideos.length === lvl.videosPerDay
+          ? data.dailyVideos
+          : generateDailyAiVideos(lvl, Number(data.aiSeed) || 0);
+
+        currentUser = {
+          name: data.name || data.phone || contact,
+          contact: data.contact || data.phone || contact,
+          pass: storedPass,
+          referralCode: normalizeGtaviCode(data.referralCode, key) || ("GTAVI-" + Math.floor(1000 + Math.random() * 9000)),
+          invitedBy: normalizeGtaviCode(data.invitedBy, ""),
+          balance: Number(data.balance) || 0,
+          commissionEarned: Number(data.commissionEarned) || 0,
+          level: lvl.level,
+          levelExpiresAt: data.levelExpiresAt || (lvl.level >= 1 ? computeExpiryIso(CONTRACT_DAYS) : ""),
+          contractDays: lvl.level >= 1
+            ? (data.levelExpiresAt ? getRemainingDays(data.levelExpiresAt) : (Number(data.contractDays) || CONTRACT_DAYS))
+            : 0,
+          aiSeed: Number(data.aiSeed) || 0,
+          taskCycleDate: today,
+          dailyTaskCompletedDate: lvl.level >= 1 && isSameDay ? (data.dailyTaskCompletedDate || "") : "",
+          dailyVideos: videos,
+          createdAt: data.createdAt || new Date().toISOString(),
+          isDemo: false
+        };
+
+        checkAndApplyLevelExpiration(currentUser);
+        sessionStorage.setItem("gtavi_session_key_fb", key);
+        openDashboard();
+      });
+    }
+
+    function startDemoMode() {
+      demoTransactions = [];
+      currentUser = {
+        name: "Membre Démo (Niveau 0)",
+        contact: "demo@gtavi.local",
+        pass: "demo123",
+        referralCode: "GTAVI-DEMO",
+        invitedBy: "",
+        balance: 30000,
+        commissionEarned: 0,
+        level: 0,
+        contractDays: 0,
+        levelExpiresAt: "",
+        aiSeed: 1,
+        taskCycleDate: getTodayDateKey(),
+        dailyTaskCompletedDate: "",
+        dailyVideos: [],
+        createdAt: new Date().toISOString(),
+        isDemo: true
+      };
+      sessionStorage.setItem("gtavi_demo_user_fb", JSON.stringify(currentUser));
+      openDashboard();
+    }
+
+    function logoutUser() {
+      clearInterval(liveCountdownInterval);
+      currentUser = null;
+      sessionStorage.removeItem("gtavi_session_key_fb");
+      sessionStorage.removeItem("gtavi_demo_user_fb");
+      document.getElementById("dashboardSection").classList.add("hidden");
+      document.getElementById("authSection").classList.remove("hidden");
+      switchAuthTab("register");
+    }
+
+    function getCurrentLevelObj() {
+      if (!currentUser) return LEVEL_ZERO;
+      return getLevelObjByNumber(currentUser.level);
+    }
+
+    function openDashboard() {
+      document.getElementById("authSection").classList.add("hidden");
+      document.getElementById("dashboardSection").classList.remove("hidden");
+      switchMainPage("home");
+
+      const adminBtn = document.getElementById("adminBtn");
+      if (isAdminSession()) {
+        adminBtn.classList.remove("hidden");
+      } else {
+        adminBtn.classList.add("hidden");
+      }
+
+      if (!currentUser.isDemo) {
+        listenUserTransactions(currentUser.contact);
+        refreshReferralStats();
+      } else {
+        renderTransactionsList(demoTransactions);
+      }
+      renderDashboard();
+      updateLiveTaskCountdown();
+
+      clearInterval(liveCountdownInterval);
+      liveCountdownInterval = setInterval(updateLiveTaskCountdown, 1000);
+    }
+
+    function refreshReferralStats() {
+      if (!currentUser || currentUser.isDemo || !currentUser.referralCode) return;
+      const count = Object.values(allUsersCache || {}).filter(
+        u => u && normalizeGtaviCode(u.invitedBy, "") === currentUser.referralCode
+      ).length;
+      const el = document.getElementById("statReferralsCount");
+      if (el) el.textContent = String(count);
+    }
+
+    async function paySponsorCommission(amountPaid, levelName) {
+      if (!currentUser || currentUser.isDemo || !currentUser.invitedBy) return;
+      const bonus = Math.round(Number(amountPaid) * REFERRAL_BONUS_RATE);
+      if (bonus <= 0) return;
+
+      const entries = Object.entries(allUsersCache || {});
+      const found = entries.find(([, u]) => u && normalizeGtaviCode(u.referralCode, "") === currentUser.invitedBy);
+      if (!found) return;
+
+      const [sponsorKey] = found;
+      await db.ref("users/" + sponsorKey).transaction(curr => {
+        if (!curr) return curr;
+        curr.balance = (Number(curr.balance) || 0) + bonus;
+        curr.commissionEarned = (Number(curr.commissionEarned) || 0) + bonus;
+        curr.updatedAt = new Date().toISOString();
+        return curr;
+      });
+      await db.ref("transactions/" + sponsorKey).push({
+        type: `Bonus Parrainage Auto 10% (${levelName} — ${currentUser.contact})`,
+        amount: bonus,
+        date: new Date().toLocaleString(),
+        status: "Validé"
+      });
+    }
+
+    function copyReferralLink() {
+      const linkText = document.getElementById("userReferralLinkBox").textContent;
+      if (!linkText || linkText === "---") return;
+      navigator.clipboard.writeText(linkText).then(() => {
+        showAlert("dashAlert", "Lien de parrainage copié.", "success");
+      }).catch(() => {
+        showAlert("dashAlert", "Lien : " + linkText, "success");
+      });
+    }
+
+    function renderDashboard() {
+      if (!currentUser) return;
+      const expiredNow = checkAndApplyLevelExpiration(currentUser);
+      ensureDailyTaskCycle();
+      const lvl = getCurrentLevelObj();
+      const today = getTodayDateKey();
+      const completedToday = currentUser.dailyTaskCompletedDate === today;
+      const sched = getTaskAvailabilityStatus();
+
+      lastLiveStateKey = `${today}|${sched.mode}|${lvl.level}|${currentUser.dailyTaskCompletedDate || ""}`;
+
+      const remDays = lvl.level >= 1
+        ? (currentUser.levelExpiresAt ? getRemainingDays(currentUser.levelExpiresAt) : CONTRACT_DAYS)
+        : 0;
+      const daysLabel = lvl.level >= 1 ? `${remDays}j restants / 365j` : "Aucun niveau actif";
+      document.getElementById("userWelcome").textContent =
+        `${currentUser.name} (${currentUser.contact}) • ${daysLabel}`;
+
+      const refCode = normalizeGtaviCode(currentUser.referralCode, sanitizeKey(currentUser.contact)) || "GTAVI-2026";
+      currentUser.referralCode = refCode;
+
+      document.getElementById("accountDetailText").textContent =
+        `${currentUser.name} • Compte : ${currentUser.contact} • Code : ${refCode}`;
+      document.getElementById("accountExpiryText").textContent = lvl.level >= 1 && currentUser.levelExpiresAt
+        ? `Validité du niveau : expire le ${formatDateFrench(currentUser.levelExpiresAt)} (${remDays} jour(s) restant(s))`
+        : "Aucun niveau payant actif (Niveau 0)";
+
+      document.getElementById("statBalance").textContent =
+        `${Number(currentUser.balance).toLocaleString("fr-FR")} FCFA`;
+      document.getElementById("statLevel").textContent = lvl.name;
+
+      const submittedCount = lvl.level >= 1 ? currentUser.dailyVideos.filter(v => v.submitted).length : 0;
+      document.getElementById("statTasks").textContent = `${submittedCount} / ${lvl.videosPerDay}`;
+
+      document.getElementById("statCommissionEarned").textContent =
+        `${Number(currentUser.commissionEarned || 0).toLocaleString("fr-FR")} FCFA`;
+
+      const baseUrl = window.location.href.split("?")[0];
+      document.getElementById("userReferralLinkBox").textContent = `${baseUrl}?ref=${encodeURIComponent(refCode)}`;
+
+      document.getElementById("taskCountdownLabel").textContent = sched.label;
+      if (sched.allowed) {
+        document.getElementById("taskLiveCountdown").textContent = "OUVERT";
+      } else if (sched.mode === "no_level") {
+        document.getElementById("taskLiveCountdown").textContent = "NIVEAU 0";
+      } else {
+        document.getElementById("taskLiveCountdown").textContent = formatDurationHMS(sched.remainingSec);
+      }
+      document.getElementById("taskScheduleNotice").textContent = sched.reason;
+
+      const refreshBtn = document.getElementById("refreshAiBtn");
+      refreshBtn.disabled = completedToday || !sched.allowed;
+
+      refreshReferralStats();
+      renderVideosList(sched.allowed, completedToday);
+      updateSelectionSummary(sched.allowed, completedToday);
+      renderLevelsList();
+      persistCurrentUser();
+
+      if (expiredNow) {
+        showAlert("dashAlert", "Votre période de 365 jours est arrivée à expiration : votre compte est repassé au Niveau 0.");
+      }
+    }
+
+    function renderVideosList(canDoTasks, completedToday) {
+      const container = document.getElementById("videosContainer");
+      container.innerHTML = "";
+      const lvl = getCurrentLevelObj();
+
+      if (lvl.level === 0 || !Array.isArray(currentUser.dailyVideos) || currentUser.dailyVideos.length === 0) {
+        container.innerHTML = `
+          <div class="tx-item">
+            <div>
+              <strong>Aucune vidéo disponible (Niveau 0)</strong>
+              <div class="subtitle" style="font-size: 0.78rem;">Achetez un niveau (GTA VI 1 à GTA VI 7) dans l'onglet « Niveaux » pour débloquer vos vidéos d'1 min+.</div>
+            </div>
+            <button type="button" class="btn btn-sm" onclick="switchMainPage('levels')">Voir les niveaux</button>
+          </div>
+        `;
+        return;
+      }
+
+      currentUser.dailyVideos.forEach((vid, index) => {
+        const dur = Math.max(MIN_VIDEO_DURATION_SEC, Number(vid.durationSec) || MIN_VIDEO_DURATION_SEC);
+        const row = document.createElement("div");
+        row.className = "video-item";
+        if (vid.submitted) {
+          row.classList.add("submitted-done");
+        } else if (vid.watched) {
+          row.classList.add("watched-ready");
+        }
+
+        const left = document.createElement("div");
+        left.className = "video-left";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "task-checkbox";
+        checkbox.checked = vid.submitted ? true : Boolean(vid.checked);
+        checkbox.disabled = !canDoTasks || completedToday || !vid.watched || vid.submitted;
+        checkbox.onchange = (e) => {
+          vid.checked = e.target.checked;
+          updateSelectionSummary(canDoTasks, completedToday);
+          persistCurrentUser();
+        };
+
+        let statusBadge = `<span class="badge-status badge-pending">À regarder (${dur}s / 1 min+)</span>`;
+        if (vid.submitted) {
+          statusBadge = `<span class="badge-status badge-paid">Soumise (+100 FCFA payés)</span>`;
+        } else if (!canDoTasks || completedToday) {
+          statusBadge = `<span class="badge-status badge-pending">Indisponible</span>`;
+        } else if (vid.watched) {
+          statusBadge = `<span class="badge-status badge-ready">Visionnée (1 min+) — Prête à cocher</span>`;
+        }
+
+        const info = document.createElement("div");
+        info.innerHTML = `
+          <div class="video-title">${vid.title}</div>
+          <div class="video-sub">${vid.category} • Durée : <strong>${dur}s (1 min+)</strong> • Tarif : <strong>100 FCFA</strong></div>
+          ${statusBadge}
+        `;
+
+        left.appendChild(checkbox);
+        left.appendChild(info);
+
+        const right = document.createElement("div");
+        if (vid.submitted) {
+          right.innerHTML = `<span style="color: var(--success); font-weight: 800; font-size: 0.85rem;">Validé</span>`;
+        } else {
+          const watchBtn = document.createElement("button");
+          watchBtn.type = "button";
+          watchBtn.className = vid.watched ? "btn btn-secondary btn-sm" : "btn btn-sm";
+          watchBtn.textContent = vid.watched ? "Revoir" : "Regarder (1m+)";
+          watchBtn.disabled = !canDoTasks || completedToday;
+          watchBtn.onclick = () => openVideoModal(index);
+          right.appendChild(watchBtn);
+        }
+
+        row.appendChild(left);
+        row.appendChild(right);
+        container.appendChild(row);
+      });
+    }
+
+    function toggleSelectAllWatched(isChecked) {
+      const sched = getTaskAvailabilityStatus();
+      const completedToday = currentUser.dailyTaskCompletedDate === getTodayDateKey();
+      if (!sched.allowed || completedToday) {
+        document.getElementById("selectAllCheckbox").checked = false;
+        showAlert("dashAlert", sched.reason);
+        return;
+      }
+
+      let availableCount = 0;
+      currentUser.dailyVideos.forEach(vid => {
+        if (vid.watched && !vid.submitted) {
+          vid.checked = isChecked;
+          availableCount++;
+        }
+      });
+
+      if (isChecked && availableCount === 0) {
+        document.getElementById("selectAllCheckbox").checked = false;
+        showAlert("dashAlert", "Regardez d'abord une vidéo d'1 minute minimum avant de pouvoir la cocher.");
+        return;
+      }
+
+      renderDashboard();
+    }
+
+    function updateSelectionSummary(canDoTasks, completedToday) {
+      const checkedVideos = (currentUser.dailyVideos || []).filter(v => v.watched && !v.submitted && v.checked);
+      const count = checkedVideos.length;
+      const totalFcfa = count * PRICE_PER_VIDEO;
+
+      document.getElementById("selectedSummary").textContent =
+        `${count} cochée(s) = ${totalFcfa.toLocaleString("fr-FR")} FCFA`;
+
+      const submitBtn = document.getElementById("submitTasksBtn");
+      if (getCurrentLevelObj().level === 0) {
+        submitBtn.textContent = "Niveau 0 — Aucune vidéo";
+      } else if (completedToday) {
+        submitBtn.textContent = "Session du jour terminée";
+      } else {
+        submitBtn.textContent = `Soumettre (${totalFcfa.toLocaleString("fr-FR")} FCFA)`;
+      }
+      submitBtn.disabled = !canDoTasks || completedToday || count === 0;
+
+      const eligibleVideos = (currentUser.dailyVideos || []).filter(v => v.watched && !v.submitted);
+      const selectAllBox = document.getElementById("selectAllCheckbox");
+      selectAllBox.disabled = !canDoTasks || completedToday || eligibleVideos.length === 0;
+      selectAllBox.checked = eligibleVideos.length > 0 && count === eligibleVideos.length;
+    }
+
+    function submitCheckedVideos() {
+      if (getCurrentLevelObj().level === 0) {
+        showAlert("dashAlert", "Vous êtes au Niveau 0. Achetez un niveau pour effectuer des tâches.");
+        return;
+      }
+      const today = getTodayDateKey();
+      if (currentUser.dailyTaskCompletedDate === today) {
+        showAlert("dashAlert", "Les tâches quotidiennes ne peuvent être effectuées qu'une seule fois par jour.");
+        return;
+      }
+      const sched = getTaskAvailabilityStatus();
+      if (!sched.allowed) {
+        showAlert("dashAlert", sched.reason);
+        return;
+      }
+
+      const toSubmit = currentUser.dailyVideos.filter(v => v.watched && !v.submitted && v.checked);
+      if (toSubmit.length === 0) {
+        showAlert("dashAlert", "Veuillez d'abord regarder (1 min+) et cocher au moins une vidéo.");
+        return;
+      }
+
+      const totalGain = toSubmit.length * PRICE_PER_VIDEO;
+      toSubmit.forEach(vid => {
+        vid.submitted = true;
+        vid.checked = true;
+      });
+
+      currentUser.balance += totalGain;
+      currentUser.dailyTaskCompletedDate = today;
+      logTransaction(`Tâche Vidéo 1m+ (${toSubmit.length} vidéo(s))`, totalGain, "Validé");
+      renderDashboard();
+      showAlert(
+        "dashAlert",
+        `Tâche quotidienne validée ! +${totalGain.toLocaleString("fr-FR")} FCFA ajoutés à votre solde.`,
+        "success"
+      );
+    }
+
+    async function refreshAiVideos() {
+      if (getCurrentLevelObj().level === 0) {
+        showAlert("dashAlert", "Achetez d'abord un niveau pour charger des vidéos.");
+        return;
+      }
+      const today = getTodayDateKey();
+      if (currentUser.dailyTaskCompletedDate === today) {
+        showAlert("dashAlert", "Vous avez déjà effectué votre session quotidienne aujourd'hui. Revenez demain à partir de 9h00.");
+        return;
+      }
+      const sched = getTaskAvailabilityStatus();
+      if (!sched.allowed) {
+        showAlert("dashAlert", sched.reason);
+        return;
+      }
+
+      const lvl = getCurrentLevelObj();
+      currentUser.aiSeed = (Number(currentUser.aiSeed) || 0) + 1;
+
+      try {
+        const aiTopics = await fetchGeminiVideoTopics(lvl.videosPerDay, lvl.name);
+        currentUser.dailyVideos = generateDailyAiVideos(lvl, currentUser.aiSeed, aiTopics);
+        renderDashboard();
+        showAlert("dashAlert", `${lvl.videosPerDay} nouvelles vidéos (1 min+) préparées pour ${lvl.name}.`, "success");
+      } catch {
+        currentUser.dailyVideos = generateDailyAiVideos(lvl, currentUser.aiSeed);
+        renderDashboard();
+        showAlert("dashAlert", `${lvl.videosPerDay} nouvelles vidéos (1 min+) chargées pour ${lvl.name}.`, "success");
+      }
+    }
+
+    function renderLevelsList() {
+      const container = document.getElementById("levelsContainer");
+      container.innerHTML = "";
+
+      VIP_LEVELS.forEach(lvl => {
+        const isCurrent = currentUser.level === lvl.level;
+        const card = document.createElement("div");
+        card.className = `level-card ${isCurrent ? "active-level" : ""}`;
+
+        const dailyGain = lvl.videosPerDay * PRICE_PER_VIDEO;
+
+        card.innerHTML = `
+          <div>
+            <div class="level-title">${lvl.name}</div>
+            <div class="level-meta">Prix d'achat : <strong>${lvl.price.toLocaleString("fr-FR")} FCFA</strong></div>
+            <div class="level-meta">Vidéos / jour (1 min+) : <strong>${lvl.videosPerDay} vidéos</strong></div>
+            <div class="level-meta">Gain / vidéo : <strong>100 FCFA</strong></div>
+            <div class="level-meta">Revenu journalier : <strong>${dailyGain.toLocaleString("fr-FR")} FCFA / jour</strong></div>
+            <div class="level-meta">Durée : <strong>${lvl.durationDays} jours</strong></div>
+          </div>
+        `;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = isCurrent ? "btn btn-secondary btn-sm" : "btn btn-sm";
+        btn.style.width = "100%";
+        btn.textContent = isCurrent ? "Niveau Actif" : `Acheter (${lvl.price.toLocaleString("fr-FR")} FCFA)`;
+        btn.disabled = isCurrent;
+        btn.onclick = () => activateLevel(lvl);
+
+        card.appendChild(btn);
+        container.appendChild(card);
+      });
+    }
+
+    async function activateLevel(lvl) {
+      if (!lvl || lvl.price <= 0) return;
+
+      if (currentUser.balance < lvl.price) {
+        showAlert(
+          "dashAlert",
+          `Solde insuffisant (${Number(currentUser.balance).toLocaleString("fr-FR")} FCFA). Rechargez au moins ${lvl.price.toLocaleString("fr-FR")} FCFA pour acheter ${lvl.name}.`
+        );
+        return;
+      }
+
+      currentUser.balance -= lvl.price;
+      currentUser.level = lvl.level;
+      currentUser.contractDays = lvl.durationDays;
+      currentUser.levelExpiresAt = computeExpiryIso(lvl.durationDays);
+      currentUser.dailyTaskCompletedDate = "";
+      currentUser.dailyVideos = generateDailyAiVideos(lvl, (Number(currentUser.aiSeed) || 0) + 1);
+
+      logTransaction(`Achat ${lvl.name} (365j)`, -lvl.price, "Validé");
+      await paySponsorCommission(lvl.price, lvl.name);
+      renderDashboard();
+      showAlert(
+        "dashAlert",
+        `${lvl.name} acheté pour 365 jours ! Bonus parrainage de 10% envoyé automatiquement si vous avez un parrain.`,
+        "success"
+      );
+    }
+
+    function openVideoModal(index) {
+      const sched = getTaskAvailabilityStatus();
+      if (!sched.allowed) {
+        showAlert("dashAlert", sched.reason);
+        return;
+      }
+
+      activeVideoIndex = index;
+      const vid = currentUser.dailyVideos[index];
+      if (!vid) return;
+
+      const requiredSec = Math.max(MIN_VIDEO_DURATION_SEC, Number(vid.durationSec) || MIN_VIDEO_DURATION_SEC);
+      vid.durationSec = requiredSec;
+
+      const modal = document.getElementById("videoModal");
+      const player = document.getElementById("shortVideoPlayer");
+      const confirmBtn = document.getElementById("confirmWatchBtn");
+      const progressFill = document.getElementById("modalProgressFill");
+      const timerText = document.getElementById("modalTimerText");
+
+      document.getElementById("modalVideoTitle").textContent = vid.title;
+      document.getElementById("modalVideoCategory").textContent = vid.category;
+      document.getElementById("modalVideoTopic").textContent = `Gain : 100 FCFA • Durée min. : ${requiredSec}s (1 min+)`;
+
+      player.src = vid.videoUrl;
+      player.currentTime = 0;
+      player.play().catch(() => {});
+
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = `Visionnage en cours (${requiredSec}s minimum)...`;
+      progressFill.style.width = "0%";
+
+      let remaining = requiredSec;
+      timerText.textContent = `${remaining}s`;
+
+      clearInterval(videoTimerInterval);
+      modal.classList.remove("hidden");
+
+      videoTimerInterval = setInterval(() => {
+        remaining--;
+        const pct = Math.min(100, Math.round(((requiredSec - remaining) / requiredSec) * 100));
+        progressFill.style.width = `${pct}%`;
+
+        if (remaining > 0) {
+          timerText.textContent = `${remaining}s`;
+        } else {
+          clearInterval(videoTimerInterval);
+          timerText.textContent = "Terminé (1 min+)";
+          progressFill.style.width = "100%";
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "Terminer & Cocher la vidéo (100 FCFA)";
+        }
+      }, 1000);
+    }
+
+    function markVideoWatched() {
+      if (activeVideoIndex === null) return;
+      const vid = currentUser.dailyVideos[activeVideoIndex];
+      if (!vid) return;
+
+      vid.watched = true;
+      vid.checked = true;
+      closeVideoModal();
+      renderDashboard();
+      showAlert("dashAlert", "Vidéo d'1 minute+ visionnée et cochée ! Cliquez sur « Soumettre » pour encaisser vos 100 FCFA.", "success");
+    }
+
+    function closeVideoModal() {
+      clearInterval(videoTimerInterval);
+      const player = document.getElementById("shortVideoPlayer");
+      if (player) {
+        player.pause();
+        player.removeAttribute("src");
+        player.load();
+      }
+      activeVideoIndex = null;
+      document.getElementById("videoModal").classList.add("hidden");
+    }
+
+    function updateWithdrawPreview() {
+      const previewEl = document.getElementById("walletPreviewBox");
+      if (walletMode !== "withdraw") {
+        previewEl.classList.add("hidden");
+        return;
+      }
+      const amt = Number(document.getElementById("walletAmount").value) || 0;
+      const fee = Math.round(amt * WITHDRAW_FEE_RATE);
+      const net = Math.max(0, amt - fee);
+      previewEl.classList.remove("hidden");
+      previewEl.textContent = `Frais (5%) : ${fee.toLocaleString("fr-FR")} FCFA • Net estimé : ${net.toLocaleString("fr-FR")} FCFA • Statut initial : En attente de validation admin.`;
+    }
+
+    function openWalletModal(mode) {
+      walletMode = mode;
+      const modal = document.getElementById("walletModal");
+      const title = document.getElementById("walletModalTitle");
+      const desc = document.getElementById("walletModalDesc");
+      const amtInput = document.getElementById("walletAmount");
+      const depositNotice = document.getElementById("depositAirtelNotice");
+      const methodSelect = document.getElementById("walletMethod");
+      const depositExtra = document.getElementById("depositExtraFields");
+      const withdrawExtra = document.getElementById("withdrawExtraFields");
+
+      amtInput.value = "";
+      document.getElementById("depositSenderNumber").value = currentUser && !currentUser.isDemo ? currentUser.contact : "";
+      document.getElementById("depositRefCode").value = "";
+      document.getElementById("withdrawReceiveNumber").value = currentUser && !currentUser.isDemo ? currentUser.contact : "";
+
+      if (mode === "deposit") {
+        title.textContent = "Recharger le Solde (FCFA)";
+        desc.textContent = `Dépôt Airtel Money officiel : ${AIRTEL_DEPOSIT_NUMBER}. Crédité uniquement après validation de l'administrateur.`;
+        depositNotice.classList.remove("hidden");
+        depositExtra.classList.remove("hidden");
+        withdrawExtra.classList.add("hidden");
+        methodSelect.value = "Airtel Money (65472878)";
+        document.getElementById("walletPreviewBox").classList.add("hidden");
+      } else {
+        title.textContent = "Demander un Retrait (FCFA)";
+        desc.textContent = `Solde disponible : ${Number(currentUser.balance).toLocaleString("fr-FR")} FCFA • Min. 1 000 FCFA • Frais 5% • 9h–17h (Lun–Sam) • Validation admin.`;
+        depositNotice.classList.add("hidden");
+        depositExtra.classList.add("hidden");
+        withdrawExtra.classList.remove("hidden");
+        methodSelect.value = "Airtel Money (65472878)";
+        updateWithdrawPreview();
+      }
+      modal.classList.remove("hidden");
+    }
+
+    function closeWalletModal() {
+      document.getElementById("walletModal").classList.add("hidden");
+    }
+
+    function submitWalletAction() {
+      const amount = Number(document.getElementById("walletAmount").value);
+      const method = document.getElementById("walletMethod").value;
+
+      if (!amount || amount <= 0) {
+        showAlert("dashAlert", "Veuillez saisir un montant valide en FCFA.");
+        return;
+      }
+
+      if (walletMode === "deposit") {
+        const senderNum = document.getElementById("depositSenderNumber").value.trim();
+        const refCode = document.getElementById("depositRefCode").value.trim();
+        if (!senderNum) {
+          showAlert("dashAlert", "Veuillez indiquer le numéro ayant envoyé le dépôt.");
+          return;
+        }
+
+        const nowStr = new Date().toLocaleString();
+        const txId = "DEP-" + Date.now() + "-" + Math.floor(100 + Math.random() * 900);
+
+        if (!currentUser.isDemo) {
+          const recRef = db.ref("recharges").push();
+          recRef.set({
+            txId,
+            phone: currentUser.contact,
+            senderNumber: senderNum,
+            refCode: refCode || "Non précisée",
+            amount,
+            method,
+            depositNumber: AIRTEL_DEPOSIT_NUMBER,
+            status: "En attente",
+            date: nowStr,
+            timestamp: Date.now()
+          });
+          logTransaction(
+            `Dépôt ${method} (Envoi: ${senderNum}${refCode ? " • Réf: " + refCode : ""})`,
+            amount,
+            "En attente",
+            txId
+          );
+        } else {
+          demoTransactions.unshift({
+            type: `Dépôt ${method} (Envoi: ${senderNum})`,
+            amount,
+            date: nowStr,
+            status: "En attente",
+            txId
+          });
+          renderTransactionsList(demoTransactions.slice(0, 25));
+        }
+
+        closeWalletModal();
+        renderDashboard();
+        showAlert(
+          "dashAlert",
+          `Demande de dépôt de ${amount.toLocaleString("fr-FR")} FCFA envoyée : statut « En attente » jusqu'à validation par l'administrateur.`,
+          "success"
+        );
+      } else {
+        const sched = getWithdrawAvailabilityStatus();
+        if (!sched.allowed) {
+          showAlert("dashAlert", sched.reason);
+          return;
+        }
+        if (amount < MIN_WITHDRAW_AMOUNT) {
+          showAlert("dashAlert", `Le retrait minimum est de ${MIN_WITHDRAW_AMOUNT.toLocaleString("fr-FR")} FCFA.`);
+          return;
+        }
+        if (amount > currentUser.balance) {
+          showAlert("dashAlert", "Montant supérieur à votre solde disponible.");
+          return;
+        }
+
+        const receiveNum = document.getElementById("withdrawReceiveNumber").value.trim() || currentUser.contact;
+        const fee = Math.round(amount * WITHDRAW_FEE_RATE);
+        const netAmount = amount - fee;
+        const nowStr = new Date().toLocaleString();
+        const txId = "RET-" + Date.now() + "-" + Math.floor(100 + Math.random() * 900);
+
+        currentUser.balance -= amount;
+        if (!currentUser.isDemo) {
+          db.ref("withdrawals").push({
+            txId,
+            phone: currentUser.contact,
+            receiveNumber: receiveNum,
+            requestedAmount: amount,
+            feeAmount: fee,
+            netAmount,
+            method,
+            status: "En attente",
+            date: nowStr,
+            timestamp: Date.now()
+          });
+          logTransaction(
+            `Retrait ${method} → ${receiveNum} (frais 5% : -${fee.toLocaleString("fr-FR")}F, net ${netAmount.toLocaleString("fr-FR")}F)`,
+            -amount,
+            "En attente",
+            txId
+          );
+        } else {
+          demoTransactions.unshift({
+            type: `Retrait ${method} → ${receiveNum} (frais 5% : -${fee.toLocaleString("fr-FR")}F, net ${netAmount.toLocaleString("fr-FR")}F)`,
+            amount: -amount,
+            date: nowStr,
+            status: "En attente",
+            txId
+          });
+          renderTransactionsList(demoTransactions.slice(0, 25));
+        }
+
+        closeWalletModal();
+        renderDashboard();
+        showAlert(
+          "dashAlert",
+          `Demande de retrait de ${amount.toLocaleString("fr-FR")} FCFA enregistrée : statut « En attente » de validation par l'administrateur.`,
+          "success"
+        );
+      }
+    }
+
+    function requestAdminAccess() {
+      if (!isAdminSession()) {
+        showAlert("dashAlert", "Accès réservé au numéro administrateur.");
+        return;
+      }
+      document.getElementById("adminCodeInput").value = "";
+      document.getElementById("adminAuthModal").classList.remove("hidden");
+    }
+
+    function closeAdminAuthModal() {
+      document.getElementById("adminAuthModal").classList.add("hidden");
+    }
+
+    function verifyAdminCode() {
+      if (!isAdminSession()) return;
+      const code = document.getElementById("adminCodeInput").value.trim();
+      if (code !== ADMIN_CODE) {
+        alert("Code administrateur incorrect.");
+        return;
+      }
+      closeAdminAuthModal();
+      hideAlert("adminAlert");
+      document.getElementById("adminSearchInput").value = "";
+      document.getElementById("adminConsoleModal").classList.remove("hidden");
+      switchAdminTab("users");
+      refreshAdminActiveTab();
+    }
+
+    function closeAdminConsole() {
+      document.getElementById("adminConsoleModal").classList.add("hidden");
+    }
+
+    function switchAdminTab(tab) {
+      activeAdminTab = tab;
+      const tabs = ["users", "referrals", "recharges", "withdrawals", "grant"];
+      tabs.forEach(t => {
+        const cap = t.charAt(0).toUpperCase() + t.slice(1);
+        document.getElementById("admTab" + cap).classList.remove("active");
+        document.getElementById("admContent" + cap).classList.add("hidden");
+      });
+      const activeCap = tab.charAt(0).toUpperCase() + tab.slice(1);
+      document.getElementById("admTab" + activeCap).classList.add("active");
+      document.getElementById("admContent" + activeCap).classList.remove("hidden");
+
+      refreshAdminActiveTab();
+    }
+
+    function refreshAdminActiveTab() {
+      if (!isAdminSession()) return;
+      updateAiLiveBadge();
+      if (activeAdminTab === "users" || activeAdminTab === "referrals") {
+        renderAdminUsersAndReferrals();
+      } else if (activeAdminTab === "recharges") {
+        renderAdminRecharges();
+      } else if (activeAdminTab === "withdrawals") {
+        renderAdminWithdrawals();
+      }
+    }
+
+    function getAdminSearchQuery() {
+      const el = document.getElementById("adminSearchInput");
+      return el ? el.value.trim().toLowerCase() : "";
+    }
+
+    function renderAdminUsersAndReferrals() {
+      if (!isAdminSession()) return;
+      const usersContainer = document.getElementById("admContentUsers");
+      const refContainer = document.getElementById("admContentReferrals");
+      if (!usersContainer || !refContainer) return;
+
+      const q = getAdminSearchQuery();
+      usersContainer.innerHTML = "";
+      refContainer.innerHTML = "";
+
+      const entries = Object.entries(allUsersCache || {});
+      const filteredEntries = entries.filter(([key, u]) => {
+        if (!q) return true;
+        const hay = `${key} ${u.name || ""} ${u.contact || ""} ${u.phone || ""} ${u.referralCode || ""}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (filteredEntries.length === 0) {
+        usersContainer.innerHTML = `<div class="subtitle">Aucun utilisateur correspondant.</div>`;
+        refContainer.innerHTML = `<div class="subtitle">Aucun investisseur ou filleul correspondant.</div>`;
+        return;
+      }
+
+      filteredEntries.forEach(([key, u]) => {
+        const bal = Number(u.balance) || 0;
+        const lvlObj = getLevelObjByNumber(u.level);
+        const passVal = u.pass || u.password || "Non défini";
+        const refCode = normalizeGtaviCode(u.referralCode, key) || "N/A";
+        const createdLabel = formatDateFrench(u.createdAt);
+        const expLabel = lvlObj.level >= 1 && u.levelExpiresAt ? ` • Expire : ${formatDateFrench(u.levelExpiresAt)}` : "";
+
+        const row = document.createElement("div");
+        row.className = "tx-item";
+        row.innerHTML = `
+          <div style="flex: 1; min-width: 240px;">
+            <strong>${u.contact || u.phone || key}</strong> ${u.name ? `— ${u.name}` : ""}
+            <div class="subtitle" style="font-size: 0.76rem; margin-top: 2px;">
+              Mot de passe : <strong>${passVal}</strong> • Solde : <strong>${bal.toLocaleString("fr-FR")} FCFA</strong>
+            </div>
+            <div class="subtitle" style="font-size: 0.76rem;">
+              Produit / Niveau : <strong style="color: var(--gold);">${lvlObj.name}</strong> • Code : <span style="color: var(--cyan);">${refCode}</span> • Inscrit le : ${createdLabel}${expLabel}
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="adminAdjustBalance('${key}', ${bal})">+/- Solde</button>
+            <button type="button" class="btn btn-cyan btn-sm" onclick="adminOfferProduct('${key}', ${Number(u.level) || 0})">Offrir Produit</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="adminEditPassword('${key}', '${String(passVal).replace(/'/g, "\\'")}')">Mot de passe</button>
+            ${key !== sanitizeKey(ADMIN_PHONE) ? `<button type="button" class="btn btn-danger btn-sm" onclick="adminDeleteUser('${key}')">Supprimer</button>` : ""}
+          </div>
+        `;
+        usersContainer.appendChild(row);
+
+        const myReferrals = entries.filter(([, childU]) => {
+          const invCode = normalizeGtaviCode(childU.invitedBy, "");
+          return invCode && invCode === refCode;
+        });
+
+        const refBlock = document.createElement("div");
+        refBlock.className = "tx-item";
+        const referralsHtml = myReferrals.length === 0
+          ? `<div class="subtitle" style="font-size: 0.76rem; margin-top: 4px;">Aucun filleul enregistré sous le code ${refCode}.</div>`
+          : myReferrals.map(([, f]) => {
+              const fLvl = getLevelObjByNumber(f.level);
+              const fDate = formatDateFrench(f.createdAt);
+              const fUpdated = formatDateFrench(f.updatedAt || f.createdAt);
+              return `
+                <div style="margin-top: 6px; padding: 7px 9px; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 0.77rem;">
+                  <strong>Filleul : ${f.contact || f.phone}</strong> (${f.name || "Membre"})
+                  <div>Produit / Niveau : <strong style="color: var(--cyan);">${fLvl.name}</strong> • Solde : <strong>${Number(f.balance || 0).toLocaleString("fr-FR")} FCFA</strong></div>
+                  <div class="subtitle">Date inscription : <strong>${fDate}</strong> • Mise à jour : <strong>${fUpdated}</strong></div>
+                </div>
+              `;
+            }).join("");
+
+        refBlock.innerHTML = `
+          <div style="width: 100%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+              <strong>Investisseur : ${u.contact || u.phone || key} (${u.name || "Membre"})</strong>
+              <span class="badge-status badge-ready">${myReferrals.length} filleul(s) • ${lvlObj.name}</span>
+            </div>
+            <div class="subtitle" style="font-size: 0.75rem;">Code parrainage : <strong>${refCode}</strong> • Date d'entrée : ${createdLabel}</div>
+            ${referralsHtml}
+          </div>
+        `;
+        refContainer.appendChild(refBlock);
+      });
+    }
+
+    function adminAdjustBalance(userKey, currentBal) {
+      if (!isAdminSession()) return;
+      const input = prompt(`Solde actuel : ${currentBal.toLocaleString("fr-FR")} FCFA.\nEntrez un montant à AJOUTER (ex: 10000) ou RETIRER avec un moins (ex: -5000) :`, "0");
+      if (input === null || input.trim() === "" || isNaN(Number(input))) return;
+      const delta = Number(input);
+      db.ref("users/" + userKey).transaction(curr => {
+        if (!curr) return curr;
+        curr.balance = Math.max(0, (Number(curr.balance) || 0) + delta);
+        curr.updatedAt = new Date().toISOString();
+        return curr;
+      }).then(() => {
+        db.ref("transactions/" + userKey).push({
+          type: delta >= 0 ? "Ajout Solde Admin" : "Retrait Solde Admin",
+          amount: delta,
+          date: new Date().toLocaleString(),
+          status: "Validé"
+        });
+        showAlert("adminAlert", "Solde mis à jour avec succès.", "success");
+      });
+    }
+
+    function adminOfferProduct(userKey, currentLvlNum) {
+      if (!isAdminSession()) return;
+      const choice = prompt(
+        `Niveau actuel : ${currentLvlNum}.\nEntrez le numéro du produit à OFFRIR (0 = Niveau 0, 1 = GTA VI 1 ... 7 = GTA VI 7) :`,
+        String(currentLvlNum || 1)
+      );
+      if (choice === null || choice.trim() === "" || isNaN(Number(choice))) return;
+      const lvlNum = Math.max(0, Math.min(7, Number(choice)));
+      const data = allUsersCache[userKey] || {};
+      const updates = { updatedAt: new Date().toISOString() };
+
+      if (lvlNum === 0) {
+        updates.level = 0;
+        updates.contractDays = 0;
+        updates.levelExpiresAt = "";
+        updates.dailyTaskCompletedDate = "";
+        updates.dailyVideos = [];
+      } else {
+        const lvlObj = VIP_LEVELS.find(l => l.level === lvlNum);
+        updates.level = lvlObj.level;
+        updates.contractDays = lvlObj.durationDays;
+        updates.levelExpiresAt = computeExpiryIso(lvlObj.durationDays);
+        updates.dailyTaskCompletedDate = "";
+        updates.dailyVideos = generateDailyAiVideos(lvlObj, (Number(data.aiSeed) || 0) + 1);
+      }
+
+      db.ref("users/" + userKey).update(updates).then(() => {
+        db.ref("transactions/" + userKey).push({
+          type: `Produit Offert par Admin (${getLevelObjByNumber(lvlNum).name})`,
+          amount: 0,
+          date: new Date().toLocaleString(),
+          status: "Offert"
+        });
+        showAlert("adminAlert", `Produit ${getLevelObjByNumber(lvlNum).name} attribué avec succès.`, "success");
+      });
+    }
+
+    function adminEditPassword(userKey, currentPass) {
+      if (!isAdminSession()) return;
+      const nextPass = prompt(`Mot de passe actuel : ${currentPass}\nEntrez le nouveau mot de passe (min. 6 caractères) :`, currentPass);
+      if (nextPass === null) return;
+      const cleanPass = nextPass.trim();
+      if (cleanPass.length < 6) {
+        showAlert("adminAlert", "Le mot de passe doit contenir au moins 6 caractères.");
+        return;
+      }
+      db.ref("users/" + userKey).update({
+        pass: cleanPass,
+        password: cleanPass,
+        updatedAt: new Date().toISOString()
+      }).then(() => {
+        showAlert("adminAlert", "Mot de passe modifié avec succès.", "success");
+      });
+    }
+
+    function adminDeleteUser(userKey) {
+      if (!isAdminSession() || userKey === sanitizeKey(ADMIN_PHONE)) return;
+      if (!confirm("Supprimer définitivement ce compte utilisateur ?")) return;
+      db.ref("users/" + userKey).remove().then(() => {
+        db.ref("transactions/" + userKey).remove();
+        showAlert("adminAlert", "Compte utilisateur supprimé.", "success");
+      });
+    }
+
+    function renderAdminRecharges() {
+      if (!isAdminSession()) return;
+      const container = document.getElementById("admContentRecharges");
+      if (!container) return;
+      const q = getAdminSearchQuery();
+      container.innerHTML = "";
+
+      const entries = Object.entries(rechargesCache || {}).reverse().filter(([key, r]) => {
+        if (!q) return true;
+        const hay = `${key} ${r.phone || ""} ${r.senderNumber || ""} ${r.refCode || ""} ${r.status || ""}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (entries.length === 0) {
+        container.innerHTML = `<div class="subtitle">Aucun dépôt enregistré.</div>`;
+        return;
+      }
+
+      entries.forEach(([key, r]) => {
+        const status = r.status || "En attente";
+        const badgeClass = status === "Validé" ? "badge-paid" : status === "Refusé" ? "badge-refused" : "badge-pending";
+        const extraMeta = [
+          r.senderNumber ? `Envoi : <strong>${r.senderNumber}</strong>` : "",
+          r.refCode ? `Réf : <strong>${r.refCode}</strong>` : "",
+          r.rejectReason ? `Motif : <span style="color:#fecaca;">${r.rejectReason}</span>` : ""
+        ].filter(Boolean).join(" • ");
+
+        const row = document.createElement("div");
+        row.className = "tx-item";
+        row.innerHTML = `
+          <div>
+            <strong>${r.phone || ""}</strong> • <strong>${Number(r.amount || 0).toLocaleString("fr-FR")} FCFA</strong>
+            <div class="subtitle" style="font-size: 0.76rem;">${r.method || ""} • <span class="badge-status ${badgeClass}">${status}</span> • ${r.date || ""}</div>
+            ${extraMeta ? `<div class="subtitle" style="font-size: 0.75rem; margin-top: 2px;">${extraMeta}</div>` : ""}
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            ${status === "En attente" ? `
+              <button type="button" class="btn btn-success btn-sm" onclick="adminApproveRecharge('${key}', '${r.phone}', ${Number(r.amount || 0)}, '${r.txId || ""}')">Valider Dépôt</button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="adminRejectRecharge('${key}', '${r.phone}', ${Number(r.amount || 0)}, '${r.txId || ""}')">Refuser</button>
+            ` : `<span class="badge-status ${badgeClass}">${status}</span>`}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderAdminWithdrawals() {
+      if (!isAdminSession()) return;
+      const container = document.getElementById("admContentWithdrawals");
+      if (!container) return;
+      const q = getAdminSearchQuery();
+      container.innerHTML = "";
+
+      const entries = Object.entries(withdrawalsCache || {}).reverse().filter(([key, w]) => {
+        if (!q) return true;
+        const hay = `${key} ${w.phone || ""} ${w.receiveNumber || ""} ${w.status || ""}`.toLowerCase();
+        return hay.includes(q);
+      });
+
+      if (entries.length === 0) {
+        container.innerHTML = `<div class="subtitle">Aucun retrait enregistré.</div>`;
+        return;
+      }
+
+      entries.forEach(([key, w]) => {
+        const status = w.status || "En attente";
+        const badgeClass = status === "Validé" ? "badge-paid" : status === "Refusé" ? "badge-refused" : "badge-pending";
+        const reqAmt = Number(w.requestedAmount || 0);
+        const netInfo = w.netAmount ? ` • Net : ${Number(w.netAmount).toLocaleString("fr-FR")} FCFA` : "";
+        const recInfo = w.receiveNumber ? ` • Réception : <strong>${w.receiveNumber}</strong>` : "";
+        const reasonInfo = w.rejectReason ? ` • Motif : <span style="color:#fecaca;">${w.rejectReason}</span>` : "";
+
+        const row = document.createElement("div");
+        row.className = "tx-item";
+        row.innerHTML = `
+          <div>
+            <strong>${w.phone || ""}</strong> • <strong>${reqAmt.toLocaleString("fr-FR")} FCFA</strong>${netInfo}
+            <div class="subtitle" style="font-size: 0.76rem;">${w.method || ""}${recInfo} • <span class="badge-status ${badgeClass}">${status}</span> • ${w.date || ""}</div>
+            ${reasonInfo ? `<div class="subtitle" style="font-size: 0.75rem; margin-top: 2px;">${reasonInfo.replace(/^ • /, "")}</div>` : ""}
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            ${status === "En attente" ? `
+              <button type="button" class="btn btn-success btn-sm" onclick="adminApproveWithdrawal('${key}', '${w.phone}', '${w.txId || ""}')">Approuver Retrait</button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="adminRejectWithdrawal('${key}', '${w.phone}', ${reqAmt}, '${w.txId || ""}')">Refuser & Rembourser</button>
+            ` : `<span class="badge-status ${badgeClass}">${status}</span>`}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function adminApproveRecharge(recKey, phone, amount, txId = "") {
+      if (!isAdminSession()) return;
+      const userKey = sanitizeKey(phone);
+      db.ref("recharges/" + recKey).transaction(curr => {
+        if (!curr || curr.status !== "En attente") return;
+        curr.status = "Validé";
+        curr.validatedAt = new Date().toISOString();
+        return curr;
+      }).then(res => {
+        if (!res.committed) {
+          showAlert("adminAlert", "Ce dépôt a déjà été traité.");
+          return;
+        }
+        db.ref("users/" + userKey).transaction(u => {
+          if (!u) return u;
+          u.balance = (Number(u.balance) || 0) + Number(amount || 0);
+          u.updatedAt = new Date().toISOString();
+          return u;
+        });
+        if (txId) {
+          updateUserTransactionById(userKey, txId, { status: "Validé" });
+        } else {
+          db.ref("transactions/" + userKey).push({
+            type: "Dépôt Validé par Admin",
+            amount: Number(amount || 0),
+            date: new Date().toLocaleString(),
+            status: "Validé"
+          });
+        }
+        showAlert("adminAlert", `Dépôt de ${Number(amount).toLocaleString("fr-FR")} FCFA validé et crédité.`, "success");
+      });
+    }
+
+    function adminRejectRecharge(recKey, phone, amount, txId = "") {
+      if (!isAdminSession()) return;
+      const reasonInput = prompt("Motif du refus (optionnel, ex: Référence non reçue) :", "");
+      if (reasonInput === null) return;
+      const reason = reasonInput.trim();
+      const userKey = sanitizeKey(phone);
+
+      db.ref("recharges/" + recKey).transaction(curr => {
+        if (!curr || curr.status !== "En attente") return;
+        curr.status = "Refusé";
+        curr.rejectReason = reason;
+        curr.rejectedAt = new Date().toISOString();
+        return curr;
+      }).then(res => {
+        if (!res.committed) {
+          showAlert("adminAlert", "Ce dépôt a déjà été traité.");
+          return;
+        }
+        if (txId) {
+          updateUserTransactionById(userKey, txId, { status: "Refusé", note: reason });
+        } else {
+          db.ref("transactions/" + userKey).push({
+            type: "Dépôt Refusé par Admin",
+            amount: 0,
+            date: new Date().toLocaleString(),
+            status: "Refusé",
+            note: reason
+          });
+        }
+        showAlert("adminAlert", `Dépôt de ${Number(amount).toLocaleString("fr-FR")} FCFA marqué comme refusé.`, "success");
+      });
+    }
+
+    function adminApproveWithdrawal(withKey, phone, txId = "") {
+      if (!isAdminSession()) return;
+      const userKey = sanitizeKey(phone);
+      db.ref("withdrawals/" + withKey).transaction(curr => {
+        if (!curr || curr.status !== "En attente") return;
+        curr.status = "Validé";
+        curr.validatedAt = new Date().toISOString();
+        return curr;
+      }).then(res => {
+        if (!res.committed) {
+          showAlert("adminAlert", "Ce retrait a déjà été traité.");
+          return;
+        }
+        if (txId) {
+          updateUserTransactionById(userKey, txId, { status: "Validé" });
+        } else {
+          db.ref("transactions/" + userKey).push({
+            type: "Retrait Validé par Admin",
+            amount: 0,
+            date: new Date().toLocaleString(),
+            status: "Validé"
+          });
+        }
+        showAlert("adminAlert", "Retrait approuvé et validé.", "success");
+      });
+    }
+
+    function adminRejectWithdrawal(withKey, phone, requestedAmount, txId = "") {
+      if (!isAdminSession()) return;
+      const reasonInput = prompt("Motif du refus & remboursement (optionnel) :", "");
+      if (reasonInput === null) return;
+      const reason = reasonInput.trim();
+      const userKey = sanitizeKey(phone);
+
+      db.ref("withdrawals/" + withKey).transaction(curr => {
+        if (!curr || curr.status !== "En attente") return;
+        curr.status = "Refusé";
+        curr.rejectReason = reason;
+        curr.rejectedAt = new Date().toISOString();
+        return curr;
+      }).then(res => {
+        if (!res.committed) {
+          showAlert("adminAlert", "Ce retrait a déjà été traité.");
+          return;
+        }
+        db.ref("users/" + userKey).transaction(u => {
+          if (!u) return u;
+          u.balance = (Number(u.balance) || 0) + Number(requestedAmount || 0);
+          u.updatedAt = new Date().toISOString();
+          return u;
+        });
+        if (txId) {
+          updateUserTransactionById(userKey, txId, { status: "Refusé", note: reason });
+        } else {
+          db.ref("transactions/" + userKey).push({
+            type: "Retrait Refusé & Remboursé par Admin",
+            amount: Number(requestedAmount || 0),
+            date: new Date().toLocaleString(),
+            status: "Refusé",
+            note: reason
+          });
+        }
+        showAlert("adminAlert", "Retrait refusé et montant recrédité sur le solde du membre.", "success");
+      });
+    }
+
+    function adminGrantAction() {
+      if (!isAdminSession()) return;
+      const target = document.getElementById("grantPhone").value.trim();
+      const lvlNum = Number(document.getElementById("grantLevel").value);
+      const balDelta = Number(document.getElementById("grantBalance").value) || 0;
+      const newPass = document.getElementById("grantPassword").value.trim();
+
+      if (!target) {
+        showAlert("adminAlert", "Veuillez saisir un numéro ou identifiant cible.");
+        return;
+      }
+
+      if (newPass && newPass.length < 6) {
+        showAlert("adminAlert", "Le nouveau mot de passe doit contenir au moins 6 caractères.");
+        return;
+      }
+
+      const userKey = sanitizeKey(target);
+      db.ref("users/" + userKey).once("value").then(snap => {
+        if (!snap.exists()) {
+          showAlert("adminAlert", "Utilisateur introuvable.");
+          return;
+        }
+        const data = snap.val();
+        const nextBal = Math.max(0, (Number(data.balance) || 0) + balDelta);
+        const updates = {
+          balance: nextBal,
+          updatedAt: new Date().toISOString()
+        };
+
+        if (newPass) {
+          updates.pass = newPass;
+          updates.password = newPass;
+        }
+
+        if (lvlNum === 0) {
+          updates.level = 0;
+          updates.contractDays = 0;
+          updates.levelExpiresAt = "";
+          updates.dailyTaskCompletedDate = "";
+          updates.dailyVideos = [];
+        } else if (lvlNum >= 1 && lvlNum <= 7) {
+          const nextLvlObj = VIP_LEVELS.find(l => l.level === lvlNum);
+          if (nextLvlObj) {
+            updates.level = nextLvlObj.level;
+            updates.contractDays = nextLvlObj.durationDays;
+            updates.levelExpiresAt = computeExpiryIso(nextLvlObj.durationDays);
+            updates.dailyTaskCompletedDate = "";
+            updates.dailyVideos = generateDailyAiVideos(nextLvlObj, (Number(data.aiSeed) || 0) + 1);
+          }
+        }
+
+        db.ref("users/" + userKey).update(updates).then(() => {
+          if (balDelta !== 0) {
+            db.ref("transactions/" + userKey).push({
+              type: balDelta >= 0 ? "Ajout Solde Admin" : "Retrait Solde Admin",
+              amount: balDelta,
+              date: new Date().toLocaleString(),
+              status: "Validé"
+            });
+          }
+          if (lvlNum >= 1) {
+            db.ref("transactions/" + userKey).push({
+              type: `Produit Offert par Admin (${getLevelObjByNumber(lvlNum).name})`,
+              amount: 0,
+              date: new Date().toLocaleString(),
+              status: "Offert"
+            });
+          }
+          document.getElementById("grantPhone").value = "";
+          document.getElementById("grantLevel").value = "0";
+          document.getElementById("grantBalance").value = "0";
+          document.getElementById("grantPassword").value = "";
+          showAlert("adminAlert", "Attribution / offre appliquée avec succès.", "success");
+        });
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      generateCaptcha();
+      startLiveRealtimeListeners();
+
+      const params = new URLSearchParams(window.location.search);
+      const refParam = params.get("ref");
+      if (refParam) {
+        const regRefEl = document.getElementById("regReferral");
+        if (regRefEl) regRefEl.value = normalizeGtaviCode(refParam, "");
+      }
+
+      const demoSaved = sessionStorage.getItem("gtavi_demo_user_fb");
+      if (demoSaved) {
+        try {
+          currentUser = JSON.parse(demoSaved);
+          currentUser.referralCode = normalizeGtaviCode(currentUser.referralCode, "DEMO") || "GTAVI-DEMO";
+          openDashboard();
+          return;
+        } catch {}
+      }
+
+      const sessionKey = sessionStorage.getItem("gtavi_session_key_fb");
+      if (sessionKey) {
+        db.ref("users/" + sessionKey).once("value").then(snap => {
+          if (snap.exists()) {
+            const data = snap.val();
+            const lvl = getLevelObjByNumber(data.level);
+            const today = getTodayDateKey();
+            const isSameDay = data.taskCycleDate === today;
+            const videos = lvl.level >= 1 && isSameDay && Array.isArray(data.dailyVideos) && data.dailyVideos.length === lvl.videosPerDay
+              ? data.dailyVideos
+              : generateDailyAiVideos(lvl, Number(data.aiSeed) || 0);
+
+            currentUser = {
+              name: data.name || data.phone || sessionKey,
+              contact: data.contact || data.phone || sessionKey,
+              pass: data.pass || data.password || "",
+              referralCode: normalizeGtaviCode(data.referralCode, sessionKey) || ("GTAVI-" + sessionKey),
+              invitedBy: normalizeGtaviCode(data.invitedBy, ""),
+              balance: Number(data.balance) || 0,
+              commissionEarned: Number(data.commissionEarned) || 0,
+              level: lvl.level,
+              levelExpiresAt: data.levelExpiresAt || (lvl.level >= 1 ? computeExpiryIso(CONTRACT_DAYS) : ""),
+              contractDays: lvl.level >= 1
+                ? (data.levelExpiresAt ? getRemainingDays(data.levelExpiresAt) : (Number(data.contractDays) || CONTRACT_DAYS))
+                : 0,
+              aiSeed: Number(data.aiSeed) || 0,
+              taskCycleDate: today,
+              dailyTaskCompletedDate: lvl.level >= 1 && isSameDay ? (data.dailyTaskCompletedDate || "") : "",
+              dailyVideos: videos,
+              createdAt: data.createdAt || new Date().toISOString(),
+              isDemo: false
+            };
+            checkAndApplyLevelExpiration(currentUser);
+            openDashboard();
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
