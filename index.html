@@ -737,7 +737,7 @@
       overflow: hidden;
       margin: 12px 0;
       position: relative;
-      min-height: 185px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -745,14 +745,22 @@
 
     video#shortVideoPlayer {
       width: 100%;
-      max-height: 220px;
+      max-height: 225px;
+      display: block;
+      background: #000;
+    }
+
+    iframe#clipEmbedFrame {
+      width: 100%;
+      height: 220px;
+      border: 0;
       display: block;
       background: #000;
     }
 
     canvas#liveStreamCanvas {
       width: 100%;
-      height: 165px;
+      height: 175px;
       display: block;
       background: #090716;
     }
@@ -810,7 +818,7 @@
   <div id="authSection" class="container">
     <div class="header">
       <div class="brand">GTA VI</div>
-      <div class="subtitle">Global Task & Asset VI • Niveau 0 par défaut • Vidéos 1 min+ dès 9h (Lun–Sam)</div>
+      <div class="subtitle">Global Task & Asset VI • Niveau 0 par défaut • Clips 1 min+ dès 9h (Lun–Sam)</div>
     </div>
 
     <div class="card">
@@ -921,7 +929,7 @@
         </div>
 
         <div class="rule-banner">
-          Nouveau compte = <strong>Niveau 0</strong> (achat d'un niveau requis pour les vidéos de <strong>1 min+</strong> • 365j). Dépôt Airtel : <strong>65472878</strong>. Dépôts & retraits : <strong>en attente</strong> jusqu'à validation admin • Retraits min. <strong>1 000 FCFA</strong> • frais <strong>5%</strong> • <strong>9h–17h</strong> (<strong>lun–sam</strong>). Tâche : <strong>1 fois/jour dès 9h</strong> (repos le <strong>dimanche</strong>).
+          Nouveau compte = <strong>Niveau 0</strong> (achat d'un niveau requis pour les clips de <strong>1 min+</strong> • 365j). Dépôt Airtel : <strong>65472878</strong>. Dépôts & retraits : <strong>en attente</strong> jusqu'à validation admin • Retraits min. <strong>1 000 FCFA</strong> • frais <strong>5%</strong> • <strong>9h–17h</strong> (<strong>lun–sam</strong>). Tâche : <strong>1 fois/jour dès 9h</strong> (repos le <strong>dimanche</strong>).
         </div>
 
         <div class="wallet-row">
@@ -984,8 +992,8 @@
       <div class="card">
         <div class="top-bar">
           <div>
-            <h3 style="font-size: 1.02rem;">Tâche Vidéo Quotidienne IA (100 FCFA / vidéo • 1 min+)</h3>
-            <p class="subtitle">Mélange quotidien automatique • Vidéos d'au moins 60s • 1 session/jour dès <strong>9h00</strong> (repos le <strong>dimanche</strong>).</p>
+            <h3 style="font-size: 1.02rem;">Tâche Clips Vidéo Quotidienne (100 FCFA / clip • 1 min+)</h3>
+            <p class="subtitle">Mélange quotidien par tour • Clips d'au moins 60s • 1 session/jour dès <strong>9h00</strong> (repos le <strong>dimanche</strong>).</p>
           </div>
           <button type="button" id="refreshAiBtn" class="btn btn-secondary btn-sm" onclick="refreshAiVideos(true)">Mélanger / Sync Jour</button>
         </div>
@@ -1009,7 +1017,7 @@
         <div id="videosContainer" class="videos-list"></div>
 
         <div class="submit-bar">
-          <div id="submitInfoText" class="subtitle">100 FCFA par vidéo d'1 min+ soumise (niveau payant requis).</div>
+          <div id="submitInfoText" class="subtitle">100 FCFA par clip d'1 min+ soumis (niveau payant requis).</div>
           <button type="button" id="submitTasksBtn" class="btn btn-success" style="max-width: 260px;" onclick="submitCheckedVideos()">
             Soumettre (0 FCFA)
           </button>
@@ -1021,7 +1029,7 @@
     <div id="page-levels" class="page-section hidden">
       <div class="card">
         <h3 style="font-size: 1.02rem;">Niveaux Payants (365 Jours)</h3>
-        <p class="subtitle">Tous les niveaux sont payants (100 FCFA / vidéo d'1 min+ • validité 365 jours) : de <strong>GTA VI 1</strong> à <strong>GTA VI 7</strong>.</p>
+        <p class="subtitle">Tous les niveaux sont payants (100 FCFA / clip d'1 min+ • validité 365 jours) : de <strong>GTA VI 1</strong> à <strong>GTA VI 7</strong>.</p>
         <div id="levelsContainer" class="levels-grid"></div>
       </div>
     </div>
@@ -1124,7 +1132,7 @@
 
       <div id="aiChatMessages" class="chat-messages">
         <div class="chat-msg ai">
-          Bonjour ! Je suis l'Assistant IA GTA VI connecté en temps réel. Les dépôts et retraits restent en attente jusqu'à validation par l'administrateur. Dépôt Airtel : 65472878 (Moov, MTN, Orange disponibles ultérieurement), vidéos d'1 minute minimum mélangées chaque jour par l'IA, bonus parrainage 10%, groupe WhatsApp officiel et service client au +16838038558.
+          Bonjour ! Je suis l'Assistant IA GTA VI connecté en temps réel. Les dépôts et retraits restent en attente jusqu'à validation par l'administrateur. Dépôt Airtel : 65472878 (Moov, MTN, Orange disponibles ultérieurement), clips d'1 minute minimum mélangés chaque jour par tours, bonus parrainage 10%, groupe WhatsApp officiel et service client au +16838038558.
         </div>
       </div>
 
@@ -1188,13 +1196,13 @@
           <label for="grantLevel">Offrir un produit / niveau (0 = Niveau 0, ou 1 à 7 pour GTA VI 1 à GTA VI 7)</label>
           <select id="grantLevel">
             <option value="0">0 — Niveau 0 (Aucun produit)</option>
-            <option value="1">1 — Offrir GTA VI 1 (4 vidéos/j • 365j)</option>
-            <option value="2">2 — Offrir GTA VI 2 (10 vidéos/j • 365j)</option>
-            <option value="3">3 — Offrir GTA VI 3 (25 vidéos/j • 365j)</option>
-            <option value="4">4 — Offrir GTA VI 4 (50 vidéos/j • 365j)</option>
-            <option value="5">5 — Offrir GTA VI 5 (100 vidéos/j • 365j)</option>
-            <option value="6">6 — Offrir GTA VI 6 (200 vidéos/j • 365j)</option>
-            <option value="7">7 — Offrir GTA VI 7 (330 vidéos/j • 365j)</option>
+            <option value="1">1 — Offrir GTA VI 1 (4 clips/j • 365j)</option>
+            <option value="2">2 — Offrir GTA VI 2 (10 clips/j • 365j)</option>
+            <option value="3">3 — Offrir GTA VI 3 (25 clips/j • 365j)</option>
+            <option value="4">4 — Offrir GTA VI 4 (50 clips/j • 365j)</option>
+            <option value="5">5 — Offrir GTA VI 5 (100 clips/j • 365j)</option>
+            <option value="6">6 — Offrir GTA VI 6 (200 clips/j • 365j)</option>
+            <option value="7">7 — Offrir GTA VI 7 (330 clips/j • 365j)</option>
           </select>
         </div>
         <div class="form-group">
@@ -1210,19 +1218,26 @@
     </div>
   </div>
 
-  <!-- MODAL LECTEUR VIDÉO COURTE (1 MINUTE MINIMUM) -->
+  <!-- MODAL LECTEUR CLIP VIDÉO (1 MINUTE MINIMUM) -->
   <div id="videoModal" class="modal-backdrop hidden">
     <div class="modal-card">
-      <h3 id="modalVideoTitle">Vidéo Courte (1 min+)</h3>
+      <h3 id="modalVideoTitle">Clip Vidéo (1 min+)</h3>
       <p id="modalVideoCategory" class="subtitle" style="margin-top: 4px;"></p>
       <p id="modalVideoBrief" class="subtitle" style="margin-top: 4px; color: #e2e8f0;"></p>
 
       <div class="video-player-box">
-        <video id="shortVideoPlayer" playsinline muted loop controls preload="metadata"></video>
-        <canvas id="liveStreamCanvas" class="hidden" width="440" height="165"></canvas>
+        <video id="shortVideoPlayer" playsinline muted loop controls preload="auto"></video>
+        <iframe
+          id="clipEmbedFrame"
+          class="hidden"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+        ></iframe>
+        <canvas id="liveStreamCanvas" class="hidden" width="440" height="175"></canvas>
         <div class="video-status-bar">
-          <span id="videoStreamStatus">Chargement du flux vidéo...</span>
-          <button type="button" class="link-btn" onclick="switchVideoSourceFallback()">Changer de flux</button>
+          <span id="videoStreamStatus">Chargement du clip...</span>
+          <button type="button" class="link-btn" onclick="switchVideoSourceFallback()">Changer de clip / flux</button>
         </div>
       </div>
 
@@ -1345,32 +1360,34 @@
       { level: 7, name: "GTA VI 7", price: 1000000, videosPerDay: 330, rewardPerVideo: 100, durationDays: 365 }
     ];
 
-    // Catalogue varié de flux MP4 publics longs (60s+) + rotation/mélange quotidien
-    const VERIFIED_VIDEO_SOURCES = [
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4"
+    // Catalogue de vrais clips lisibles (lecteur MP4 direct + lecteurs intégrés embed)
+    const VERIFIED_CLIP_SOURCES = [
+      { type: "video", label: "Clip Court-Métrage Big Buck Bunny (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+      { type: "video", label: "Clip Animation Elephants Dream (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" },
+      { type: "video", label: "Clip Sci-Fi Tears of Steel (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" },
+      { type: "video", label: "Clip Aventure Sintel (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" },
+      { type: "video", label: "Clip Tout-Terrain Subaru Outback (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4" },
+      { type: "video", label: "Clip Course & Route Bullrun (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4" },
+      { type: "video", label: "Clip Action & Effets Blazes (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" },
+      { type: "video", label: "Clip Évasion & Voyages Escapes (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" },
+      { type: "video", label: "Clip Divertissement Fun (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4" },
+      { type: "video", label: "Clip Ambiance Joy (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4" },
+      { type: "video", label: "Clip Auto GTI Review (1 min+)", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4" },
+      { type: "embed", label: "Clip Vidéo YouTube Embed #1 (1 min+)", url: "https://www.youtube.com/embed/aqz-KE-bpKQ?autoplay=1&mute=1&loop=1&playlist=aqz-KE-bpKQ" },
+      { type: "embed", label: "Clip Vidéo YouTube Embed #2 (1 min+)", url: "https://www.youtube.com/embed/ysz5S6PUM-U?autoplay=1&mute=1&loop=1&playlist=ysz5S6PUM-U" },
+      { type: "embed", label: "Clip Vidéo YouTube Embed #3 (1 min+)", url: "https://www.youtube.com/embed/eRsGyueVLvQ?autoplay=1&mute=1&loop=1&playlist=eRsGyueVLvQ" }
     ];
 
-    // Banque de thèmes variés mélangée chaque jour (tour de mélange) pour les investisseurs
+    // Banque de clips / thèmes variés mélangée chaque jour par tour
     const SHORT_VIDEOS_POOL = [
-      { category: "Tech & IA • Format 1 min+", title: "Capsule IA : Automatisation & Productivité", brief: "Analyse quotidienne de l'IA et de l'efficacité numérique." },
-      { category: "Business & Digital • Format 1 min+", title: "Capsule Business : Croissance & Stratégie Web", brief: "Focus du jour sur l'organisation des projets en ligne." },
-      { category: "Cinéma & Création • Format 1 min+", title: "Capsule Cinéma : Montage & Mise en Scène", brief: "Décryptage visuel et rythme de création quotidienne." },
-      { category: "Nature & Découverte • Format 1 min+", title: "Capsule Découverte : Énergie & Environnement", brief: "Exploration quotidienne des solutions durables." },
-      { category: "Automobile & Design • Format 1 min+", title: "Capsule Design : Performance & Aérodynamisme", brief: "Étude visuelle sur le design et la mécanique." },
-      { category: "Économie & Médias • Format 1 min+", title: "Capsule Médias : Tendances & Veille Quotidienne", brief: "Résumé quotidien des thématiques clés du moment." },
-      { category: "Science & Futur • Format 1 min+", title: "Capsule Futur : Innovations & Nouveaux Usages", brief: "Points clés du jour sur les outils numériques." },
-      { category: "Culture & Divertissement • Format 1 min+", title: "Capsule Divertissement : Scénario & Narration", brief: "Structure narrative et créativité visuelle." }
+      { category: "Clip Cinéma & Animation • 1 min+", title: "Clip Cinéma : Séquence Haute Définition", brief: "Clip vidéo divertissant d'une minute minimum pour votre session du jour." },
+      { category: "Clip Action & Vitesse • 1 min+", title: "Clip Action : Course & Piste Rapide", brief: "Séquence dynamique de 60s minimum à visionner puis cocher." },
+      { category: "Clip Découverte & Nature • 1 min+", title: "Clip Découverte : Grands Espaces & Voyages", brief: "Immersion visuelle d'1 minute minimum avant validation." },
+      { category: "Clip Auto & Moteur • 1 min+", title: "Clip Auto : Essai Route & Design", brief: "Présentation vidéo d'1 minute minimum sur la performance et le style." },
+      { category: "Clip Sci-Fi & Effets • 1 min+", title: "Clip Sci-Fi : Scène Visuelle & Montage", brief: "Extrait visuel d'1 minute minimum pour compléter votre tâche quotidienne." },
+      { category: "Clip Divertissement • 1 min+", title: "Clip Fun : Moment Détente & Rythme", brief: "Clip vidéo d'une minute minimum pour vous distraire pendant la tâche." },
+      { category: "Clip Culture & Scène • 1 min+", title: "Clip Scène : Création & Mise en Image", brief: "Séquence vidéo d'1 minute minimum mélangée pour le tour du jour." },
+      { category: "Clip Aventure • 1 min+", title: "Clip Aventure : Quête & Horizons", brief: "Clip d'aventure d'1 minute minimum comptabilisé pour 100 FCFA." }
     ];
 
     let currentCaptchaCode = "";
@@ -1586,8 +1603,8 @@
         allowed: true,
         mode: "open",
         remainingSec: 0,
-        label: "Session quotidienne ouverte (vidéos IA 1 min+ • dès 9h)",
-        reason: "Session quotidienne ouverte (1 fois par jour à partir de 9h00, du lundi au samedi — vidéos d'1 min minimum)."
+        label: "Session quotidienne ouverte (clips 1 min+ • dès 9h)",
+        reason: "Session quotidienne ouverte (1 fois par jour à partir de 9h00, du lundi au samedi — clips d'1 min minimum)."
       };
     }
 
@@ -1672,7 +1689,9 @@
           v.durationSec = MIN_VIDEO_DURATION_SEC;
         }
         if (!v.videoUrl) {
-          v.videoUrl = VERIFIED_VIDEO_SOURCES[(idx + (Number(currentUser.aiSeed) || 0)) % VERIFIED_VIDEO_SOURCES.length];
+          const fallbackSrc = VERIFIED_CLIP_SOURCES[(idx + (Number(currentUser.aiSeed) || 0)) % VERIFIED_CLIP_SOURCES.length];
+          v.videoUrl = fallbackSrc.url;
+          v.sourceType = fallbackSrc.type;
         }
       });
       return false;
@@ -2047,7 +2066,7 @@
       }
     }
 
-    // Tour de mélange quotidien : mélange les thèmes et les flux selon la date, le tour (seed) et le compte
+    // Tour de mélange quotidien : mélange les clips et les sources selon la date, le tour et le membre
     function generateDailyAiVideos(levelObj, seedOffset = 0, customTopics = null) {
       if (!levelObj || levelObj.level === 0 || !levelObj.videosPerDay) return [];
       const todayKey = getTodayDateKey();
@@ -2055,13 +2074,13 @@
       const baseSeed = hashStringSeed(`${todayKey}|L${levelObj.level}|seed:${seedOffset}|u:${userId}`);
 
       const shuffledTopics = shuffleWithSeed(SHORT_VIDEOS_POOL, baseSeed ^ 0x9e3779b9);
-      const shuffledSources = shuffleWithSeed(VERIFIED_VIDEO_SOURCES, baseSeed ^ 0x85ebca6b);
+      const shuffledSources = shuffleWithSeed(VERIFIED_CLIP_SOURCES, baseSeed ^ 0x85ebca6b);
 
       const list = [];
       for (let i = 0; i < levelObj.videosPerDay; i++) {
         const topic = shuffledTopics[i % shuffledTopics.length];
         const aiItem = Array.isArray(customTopics) && customTopics[i % customTopics.length] ? customTopics[i % customTopics.length] : null;
-        const sourceUrl = shuffledSources[i % shuffledSources.length];
+        const sourceObj = shuffledSources[i % shuffledSources.length];
         const mixRound = (Number(seedOffset) || 1);
 
         list.push({
@@ -2069,7 +2088,8 @@
           title: (aiItem && aiItem.title) ? aiItem.title : `${topic.title} • Tour ${mixRound} #${i + 1}`,
           category: (aiItem && aiItem.category) ? aiItem.category : topic.category,
           brief: (aiItem && aiItem.brief) ? aiItem.brief : topic.brief,
-          videoUrl: sourceUrl,
+          videoUrl: sourceObj.url,
+          sourceType: sourceObj.type,
           durationSec: MIN_VIDEO_DURATION_SEC,
           reward: PRICE_PER_VIDEO,
           watched: false,
@@ -2084,7 +2104,7 @@
       if (!GEMINI_API_KEY || !count) return null;
       const sampleCount = Math.min(count, 8);
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-      const prompt = `Date du jour : ${dateKey}. Niveau : ${levelName}. Génère ${sampleCount} capsules vidéo quotidiennes (durée 1 minute minimum / 60s) variées et engageantes en français. Chaque objet doit contenir "title", "category" et "brief" (1 courte phrase).`;
+      const prompt = `Date du jour : ${dateKey}. Niveau : ${levelName}. Génère ${sampleCount} titres et descriptions de clips vidéo divertissants (durée 1 minute minimum / 60s) variés en français. Chaque objet doit contenir "title", "category" et "brief" (1 courte phrase).`;
 
       const res = await fetchWithTimeout(endpoint, {
         method: "POST",
@@ -2120,7 +2140,7 @@
       if (!currentUser) return;
       const lvl = getCurrentLevelObj();
       if (lvl.level === 0) {
-        if (showFeedback) showAlert("dashAlert", "Achetez d'abord un niveau pour charger des vidéos.");
+        if (showFeedback) showAlert("dashAlert", "Achetez d'abord un niveau pour charger des clips.");
         return;
       }
       const today = getTodayDateKey();
@@ -2148,14 +2168,14 @@
         lastRenderedVideosSignature = "";
         renderDashboard(true, true);
         if (showFeedback) {
-          showAlert("dashAlert", `Tour de mélange #${currentUser.aiSeed} : ${lvl.videosPerDay} vidéos prêtes pour ${lvl.name}.`, "success");
+          showAlert("dashAlert", `Tour de mélange #${currentUser.aiSeed} : ${lvl.videosPerDay} clips mélangés pour ${lvl.name}.`, "success");
         }
       } catch {
         currentUser.dailyVideos = generateDailyAiVideos(lvl, currentUser.aiSeed);
         lastRenderedVideosSignature = "";
         renderDashboard(true, true);
         if (showFeedback) {
-          showAlert("dashAlert", `Tour de mélange #${currentUser.aiSeed} : ${lvl.videosPerDay} vidéos mélangées pour ${lvl.name}.`, "success");
+          showAlert("dashAlert", `Tour de mélange #${currentUser.aiSeed} : ${lvl.videosPerDay} clips mélangés pour ${lvl.name}.`, "success");
         }
       } finally {
         if (btn) {
@@ -2237,8 +2257,8 @@
       if (q.includes("solde") || q.includes("niveau") || q.includes("filleul") || q.includes("temps réel") || q.includes("temps reel") || q.includes("mon compte")) {
         return `État en temps réel (${live.contact}) : ${live.levelName}, solde ${live.balance.toLocaleString("fr-FR")} FCFA, bonus parrainage ${live.commission.toLocaleString("fr-FR")} FCFA, ${live.myReferralsCount} filleul(s) direct(s). Plateforme : ${live.totalAccounts} compte(s), ${live.pendingDep} dépôt(s) en attente, ${live.pendingRet} retrait(s) en attente.`;
       }
-      if (q.includes("durée") || q.includes("duree") || q.includes("minute") || q.includes("60s") || q.includes("vidéo") || q.includes("video")) {
-        return "Chaque vidéo de tâche dure au minimum 1 minute (60 secondes) pour 100 FCFA par vidéo, mélangée chaque jour par tours, accessible dès 9h00 du lundi au samedi (repos le dimanche) avec un niveau payant actif (valable 365 jours).";
+      if (q.includes("durée") || q.includes("duree") || q.includes("minute") || q.includes("60s") || q.includes("vidéo") || q.includes("video") || q.includes("clip")) {
+        return "Chaque clip de tâche dure au minimum 1 minute (60 secondes) pour 100 FCFA par clip, mélangé chaque jour par tours, accessible dès 9h00 du lundi au samedi (repos le dimanche) avec un niveau payant actif (valable 365 jours).";
       }
       return `Assistant IA GTA VI (temps réel) : ${live.levelName}, solde ${live.balance.toLocaleString("fr-FR")} FCFA. Dépôts/retraits en attente jusqu'à validation admin. Groupe WhatsApp : ${live.whatsappGroup} • Service client : ${live.supportPhone} • Dépôt Airtel : ${live.airtelDeposit}.`;
     }
@@ -2264,7 +2284,7 @@ Règles officielles GTA VI :
 2) Groupe WhatsApp officiel : ${live.whatsappGroup}.
 3) Service client : ${live.supportPhone}.
 4) Dépôts : Airtel Money actif sur le numéro ${live.airtelDeposit} ; Moov, MTN et Orange seront disponibles ultérieurement.
-5) Vidéos de tâche : durée d'1 minute minimum (60 secondes), 100 FCFA/vidéo, mélangées chaque jour par tours, 1 fois/jour dès 9h00 du lundi au samedi (repos le dimanche), niveau payant GTA VI 1 à GTA VI 7 requis (valable 365 jours ; nouveaux comptes = Niveau 0).
+5) Clips de tâche : durée d'1 minute minimum (60 secondes), 100 FCFA/clip, mélangés chaque jour par tours, 1 fois/jour dès 9h00 du lundi au samedi (repos le dimanche), niveau payant GTA VI 1 à GTA VI 7 requis (valable 365 jours ; nouveaux comptes = Niveau 0).
 6) Bonus parrainage automatique de 10% à l'achat d'un niveau. Retraits : min. 1 000 FCFA, frais 5%, 9h–17h lun–sam.`;
 
       try {
@@ -2628,8 +2648,8 @@ Règles officielles GTA VI :
         container.innerHTML = `
           <div class="tx-item">
             <div>
-              <strong>Aucune vidéo disponible (Niveau 0)</strong>
-              <div class="subtitle" style="font-size: 0.78rem;">Achetez un niveau (GTA VI 1 à GTA VI 7) dans l'onglet « Niveaux » pour débloquer vos vidéos d'1 min+.</div>
+              <strong>Aucun clip disponible (Niveau 0)</strong>
+              <div class="subtitle" style="font-size: 0.78rem;">Achetez un niveau (GTA VI 1 à GTA VI 7) dans l'onglet « Niveaux » pour débloquer vos clips d'1 min+.</div>
             </div>
             <button type="button" class="btn btn-sm" onclick="switchMainPage('levels')">Voir les niveaux</button>
           </div>
@@ -2722,7 +2742,7 @@ Règles officielles GTA VI :
 
       if (isChecked && availableCount === 0) {
         document.getElementById("selectAllCheckbox").checked = false;
-        showAlert("dashAlert", "Regardez d'abord une vidéo d'1 minute minimum avant de pouvoir la cocher.");
+        showAlert("dashAlert", "Regardez d'abord un clip d'1 minute minimum avant de pouvoir le cocher.");
         return;
       }
 
@@ -2740,7 +2760,7 @@ Règles officielles GTA VI :
 
       const submitBtn = document.getElementById("submitTasksBtn");
       if (getCurrentLevelObj().level === 0) {
-        submitBtn.textContent = "Niveau 0 — Aucune vidéo";
+        submitBtn.textContent = "Niveau 0 — Aucun clip";
       } else if (completedToday) {
         submitBtn.textContent = "Session du jour terminée";
       } else {
@@ -2773,7 +2793,7 @@ Règles officielles GTA VI :
 
       const toSubmit = currentUser.dailyVideos.filter(v => v.watched && !v.submitted && v.checked);
       if (toSubmit.length === 0) {
-        showAlert("dashAlert", "Veuillez d'abord regarder (1 min+) et cocher au moins une vidéo.");
+        showAlert("dashAlert", "Veuillez d'abord regarder (1 min+) et cocher au moins un clip.");
         return;
       }
 
@@ -2790,7 +2810,7 @@ Règles officielles GTA VI :
       currentUser.balance += totalGain;
       currentUser.dailyTaskCompletedDate = today;
       lastRenderedVideosSignature = "";
-      logTransaction(`Tâche Vidéo IA 1m+ (${toSubmit.length} vidéo(s))`, totalGain, "Validé");
+      logTransaction(`Tâche Clip 1m+ (${toSubmit.length} clip(s))`, totalGain, "Validé");
       renderDashboard(true, true);
       showAlert(
         "dashAlert",
@@ -2817,8 +2837,8 @@ Règles officielles GTA VI :
             <div>
               <div class="level-title">${lvl.name}</div>
               <div class="level-meta">Prix d'achat : <strong>${lvl.price.toLocaleString("fr-FR")} FCFA</strong></div>
-              <div class="level-meta">Vidéos / jour (1 min+) : <strong>${lvl.videosPerDay} vidéos</strong></div>
-              <div class="level-meta">Gain / vidéo : <strong>100 FCFA</strong></div>
+              <div class="level-meta">Clips / jour (1 min+) : <strong>${lvl.videosPerDay} clips</strong></div>
+              <div class="level-meta">Gain / clip : <strong>100 FCFA</strong></div>
               <div class="level-meta">Revenu journalier : <strong>${dailyGain.toLocaleString("fr-FR")} FCFA / jour</strong></div>
               <div class="level-meta">Durée : <strong>${lvl.durationDays} jours</strong></div>
             </div>
@@ -2884,7 +2904,7 @@ Règles officielles GTA VI :
         renderDashboard(true, true);
         showAlert(
           "dashAlert",
-          `${lvl.name} acheté pour 365 jours ! Vos vidéos quotidiennes mélangées sont prêtes.`,
+          `${lvl.name} acheté pour 365 jours ! Vos clips quotidiens mélangés sont prêts.`,
           "success"
         );
 
@@ -2912,11 +2932,20 @@ Règles officielles GTA VI :
       if (canvas) canvas.classList.add("hidden");
     }
 
-    function startCanvasStream(titleText, fluxNum) {
+    function hideEmbedFrame() {
+      const frame = document.getElementById("clipEmbedFrame");
+      if (frame) {
+        frame.classList.add("hidden");
+        frame.src = "";
+      }
+    }
+
+    function startCanvasStream(fluxNum) {
       const player = document.getElementById("shortVideoPlayer");
       const canvas = document.getElementById("liveStreamCanvas");
       if (!canvas) return;
       if (player) player.classList.add("hidden");
+      hideEmbedFrame();
       canvas.classList.remove("hidden");
 
       const ctx = canvas.getContext("2d");
@@ -2954,7 +2983,7 @@ Règles officielles GTA VI :
 
         ctx.fillStyle = "#ffffff";
         ctx.font = "800 14px system-ui, sans-serif";
-        ctx.fillText(`GTA VI • Flux #${fluxNum} (Lecture Continue 1 min+)`, 16, 26);
+        ctx.fillText(`GTA VI • Flux #${fluxNum} (Secours 1 min+)`, 16, 26);
         ctx.fillStyle = "#2cfcf0";
         ctx.font = "600 12px monospace";
         ctx.fillText(`Temps écoulé : ${Math.floor(t)}s / 60s`, 16, 46);
@@ -2968,53 +2997,66 @@ Règles officielles GTA VI :
 
     function applyVideoSourceToPlayer(vid, srcIndex) {
       const player = document.getElementById("shortVideoPlayer");
+      const frame = document.getElementById("clipEmbedFrame");
       const statusEl = document.getElementById("videoStreamStatus");
-      if (!player || !vid) return;
+      if (!vid) return;
 
       stopCanvasStream();
+
+      const safeIdx = ((srcIndex % VERIFIED_CLIP_SOURCES.length) + VERIFIED_CLIP_SOURCES.length) % VERIFIED_CLIP_SOURCES.length;
+      activeSourceIdx = safeIdx;
+      const srcObj = VERIFIED_CLIP_SOURCES[safeIdx];
+      vid.videoUrl = srcObj.url;
+      vid.sourceType = srcObj.type;
+
+      if (srcObj.type === "embed" && frame) {
+        if (player) {
+          player.pause();
+          player.classList.add("hidden");
+        }
+        frame.classList.remove("hidden");
+        frame.src = srcObj.url;
+        if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1}/${VERIFIED_CLIP_SOURCES.length} • Lecteur vidéo actif`;
+        return;
+      }
+
+      hideEmbedFrame();
+      if (!player) return;
       player.classList.remove("hidden");
 
-      const safeIdx = ((srcIndex % VERIFIED_VIDEO_SOURCES.length) + VERIFIED_VIDEO_SOURCES.length) % VERIFIED_VIDEO_SOURCES.length;
-      activeSourceIdx = safeIdx;
-      const url = VERIFIED_VIDEO_SOURCES[safeIdx];
-      vid.videoUrl = url;
-
-      if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1}/${VERIFIED_VIDEO_SOURCES.length} • Démarrage...`;
+      if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1}/${VERIFIED_CLIP_SOURCES.length} • Chargement...`;
 
       let started = false;
       const fallbackTimer = setTimeout(() => {
         if (!started && activeVideoIndex !== null) {
-          if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} lent • Lecture continue active`;
-          startCanvasStream(vid.title, safeIdx + 1);
+          if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1} lent • Mode secours actif`;
+          startCanvasStream(safeIdx + 1);
         }
-      }, 2500);
+      }, 3000);
 
       player.onplaying = () => {
         started = true;
         clearTimeout(fallbackTimer);
-        if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1}/${VERIFIED_VIDEO_SOURCES.length} en lecture`;
+        if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1}/${VERIFIED_CLIP_SOURCES.length} en lecture`;
       };
 
       player.onerror = () => {
         clearTimeout(fallbackTimer);
         if (activeVideoIndex !== null) {
-          if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} indisponible • Lecture continue active`;
-          startCanvasStream(vid.title, safeIdx + 1);
+          if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1} bloqué • Mode secours actif`;
+          startCanvasStream(safeIdx + 1);
         }
       };
 
       player.pause();
-      player.src = url;
+      player.src = srcObj.url;
       player.load();
       player.play().then(() => {
         started = true;
         clearTimeout(fallbackTimer);
-        if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1}/${VERIFIED_VIDEO_SOURCES.length} en lecture`;
+        if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1}/${VERIFIED_CLIP_SOURCES.length} en lecture`;
       }).catch(() => {
-        if (activeVideoIndex !== null) {
-          startCanvasStream(vid.title, safeIdx + 1);
-          if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} en lecture continue (1 min+)`;
-        }
+        if (statusEl) statusEl.textContent = `Clip #${safeIdx + 1} prêt — appuyez sur ▶ Lecture`;
       });
     }
 
@@ -3044,7 +3086,7 @@ Règles officielles GTA VI :
 
       document.getElementById("modalVideoTitle").textContent = vid.title;
       document.getElementById("modalVideoCategory").textContent = vid.category;
-      document.getElementById("modalVideoBrief").textContent = vid.brief || "Capsule quotidienne validée pour le quota de 60 secondes.";
+      document.getElementById("modalVideoBrief").textContent = vid.brief || "Clip vidéo quotidien validé pour le quota de 60 secondes.";
       document.getElementById("modalVideoTopic").textContent = `Gain : 100 FCFA • Durée min. : ${requiredSec}s (1 min+)`;
 
       confirmBtn.disabled = true;
@@ -3054,7 +3096,7 @@ Règles officielles GTA VI :
       let remaining = requiredSec;
       timerText.textContent = `${remaining}s`;
 
-      const initialIdx = VERIFIED_VIDEO_SOURCES.indexOf(vid.videoUrl);
+      const initialIdx = VERIFIED_CLIP_SOURCES.findIndex(s => s.url === vid.videoUrl);
       applyVideoSourceToPlayer(vid, initialIdx >= 0 ? initialIdx : index);
 
       clearInterval(videoTimerInterval);
@@ -3072,7 +3114,7 @@ Règles officielles GTA VI :
           timerText.textContent = "Terminé (1 min+)";
           progressFill.style.width = "100%";
           confirmBtn.disabled = false;
-          confirmBtn.textContent = "Terminer & Cocher la vidéo (100 FCFA)";
+          confirmBtn.textContent = "Terminer & Cocher le clip (100 FCFA)";
         }
       }, 1000);
     }
@@ -3087,12 +3129,13 @@ Règles officielles GTA VI :
       lastRenderedVideosSignature = "";
       closeVideoModal();
       renderDashboard(true, true);
-      showAlert("dashAlert", "Vidéo d'1 minute+ visionnée et cochée ! Cliquez sur « Soumettre » pour encaisser vos 100 FCFA.", "success");
+      showAlert("dashAlert", "Clip d'1 minute+ visionné et coché ! Cliquez sur « Soumettre » pour encaisser vos 100 FCFA.", "success");
     }
 
     function closeVideoModal() {
       clearInterval(videoTimerInterval);
       stopCanvasStream();
+      hideEmbedFrame();
       const player = document.getElementById("shortVideoPlayer");
       if (player) {
         player.onplaying = null;
