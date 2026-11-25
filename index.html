@@ -737,7 +737,7 @@
       overflow: hidden;
       margin: 12px 0;
       position: relative;
-      min-height: 180px;
+      min-height: 185px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -745,9 +745,16 @@
 
     video#shortVideoPlayer {
       width: 100%;
-      max-height: 230px;
+      max-height: 220px;
       display: block;
       background: #000;
+    }
+
+    canvas#liveStreamCanvas {
+      width: 100%;
+      height: 165px;
+      display: block;
+      background: #090716;
     }
 
     .video-status-bar {
@@ -978,9 +985,9 @@
         <div class="top-bar">
           <div>
             <h3 style="font-size: 1.02rem;">Tâche Vidéo Quotidienne IA (100 FCFA / vidéo • 1 min+)</h3>
-            <p class="subtitle">Mise à jour quotidienne par l'IA • Vidéos d'au moins 60s • 1 session/jour dès <strong>9h00</strong> (repos le <strong>dimanche</strong>).</p>
+            <p class="subtitle">Mélange quotidien automatique • Vidéos d'au moins 60s • 1 session/jour dès <strong>9h00</strong> (repos le <strong>dimanche</strong>).</p>
           </div>
-          <button type="button" id="refreshAiBtn" class="btn btn-secondary btn-sm" onclick="refreshAiVideos(true)">Sync IA du Jour</button>
+          <button type="button" id="refreshAiBtn" class="btn btn-secondary btn-sm" onclick="refreshAiVideos(true)">Mélanger / Sync Jour</button>
         </div>
 
         <div class="countdown-box">
@@ -1117,7 +1124,7 @@
 
       <div id="aiChatMessages" class="chat-messages">
         <div class="chat-msg ai">
-          Bonjour ! Je suis l'Assistant IA GTA VI connecté en temps réel. Les dépôts et retraits restent en attente jusqu'à validation par l'administrateur. Dépôt Airtel : 65472878 (Moov, MTN, Orange disponibles ultérieurement), vidéos d'1 minute minimum mises à jour chaque jour par l'IA, bonus parrainage 10%, groupe WhatsApp officiel et service client au +16838038558.
+          Bonjour ! Je suis l'Assistant IA GTA VI connecté en temps réel. Les dépôts et retraits restent en attente jusqu'à validation par l'administrateur. Dépôt Airtel : 65472878 (Moov, MTN, Orange disponibles ultérieurement), vidéos d'1 minute minimum mélangées chaque jour par l'IA, bonus parrainage 10%, groupe WhatsApp officiel et service client au +16838038558.
         </div>
       </div>
 
@@ -1212,6 +1219,7 @@
 
       <div class="video-player-box">
         <video id="shortVideoPlayer" playsinline muted loop controls preload="metadata"></video>
+        <canvas id="liveStreamCanvas" class="hidden" width="440" height="165"></canvas>
         <div class="video-status-bar">
           <span id="videoStreamStatus">Chargement du flux vidéo...</span>
           <button type="button" class="link-btn" onclick="switchVideoSourceFallback()">Changer de flux</button>
@@ -1337,40 +1345,32 @@
       { level: 7, name: "GTA VI 7", price: 1000000, videosPerDay: 330, rewardPerVideo: 100, durationDays: 365 }
     ];
 
+    // Catalogue varié de flux MP4 publics longs (60s+) + rotation/mélange quotidien
     const VERIFIED_VIDEO_SOURCES = [
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
       "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4"
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4"
     ];
 
+    // Banque de thèmes variés mélangée chaque jour (tour de mélange) pour les investisseurs
     const SHORT_VIDEOS_POOL = [
-      {
-        category: "Tech & IA • Format 1 min+",
-        title: "Capsule Vidéo IA (1 min+) : Automatisation & Productivité",
-        brief: "Analyse quotidienne de l'IA et de l'efficacité numérique."
-      },
-      {
-        category: "Business & Digital • Format 1 min+",
-        title: "Capsule Vidéo IA (1 min+) : Stratégie & Croissance Web",
-        brief: "Focus du jour sur l'organisation des projets en ligne."
-      },
-      {
-        category: "Cinéma & Création • Format 1 min+",
-        title: "Capsule Vidéo IA (1 min+) : Montage & Mise en Scène",
-        brief: "Décryptage visuel et rythme de création quotidienne."
-      },
-      {
-        category: "Innovation • Format 1 min+",
-        title: "Capsule Vidéo IA (1 min+) : Tendances & Nouveaux Usages",
-        brief: "Points clés du jour sur les outils et tendances."
-      },
-      {
-        category: "Économie & Médias • Format 1 min+",
-        title: "Capsule Vidéo IA (1 min+) : Synthèse & Veille Quotidienne",
-        brief: "Résumé quotidien des thématiques clés du moment."
-      }
+      { category: "Tech & IA • Format 1 min+", title: "Capsule IA : Automatisation & Productivité", brief: "Analyse quotidienne de l'IA et de l'efficacité numérique." },
+      { category: "Business & Digital • Format 1 min+", title: "Capsule Business : Croissance & Stratégie Web", brief: "Focus du jour sur l'organisation des projets en ligne." },
+      { category: "Cinéma & Création • Format 1 min+", title: "Capsule Cinéma : Montage & Mise en Scène", brief: "Décryptage visuel et rythme de création quotidienne." },
+      { category: "Nature & Découverte • Format 1 min+", title: "Capsule Découverte : Énergie & Environnement", brief: "Exploration quotidienne des solutions durables." },
+      { category: "Automobile & Design • Format 1 min+", title: "Capsule Design : Performance & Aérodynamisme", brief: "Étude visuelle sur le design et la mécanique." },
+      { category: "Économie & Médias • Format 1 min+", title: "Capsule Médias : Tendances & Veille Quotidienne", brief: "Résumé quotidien des thématiques clés du moment." },
+      { category: "Science & Futur • Format 1 min+", title: "Capsule Futur : Innovations & Nouveaux Usages", brief: "Points clés du jour sur les outils numériques." },
+      { category: "Culture & Divertissement • Format 1 min+", title: "Capsule Divertissement : Scénario & Narration", brief: "Structure narrative et créativité visuelle." }
     ];
 
     let currentCaptchaCode = "";
@@ -1379,6 +1379,7 @@
     let activeVideoIndex = null;
     let activeSourceIdx = 0;
     let videoTimerInterval = null;
+    let canvasAnimFrameId = null;
     let liveCountdownInterval = null;
     let deferredInstallPrompt = null;
     let lastLiveStateKey = "";
@@ -1390,6 +1391,36 @@
     let withdrawalsCache = {};
     let activeAdminTab = "users";
     let isSubmittingAction = false;
+
+    function hashStringSeed(str) {
+      let h = 2166136261;
+      const s = String(str || "");
+      for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function createSeededRng(seed) {
+      let state = (seed >>> 0) || 1;
+      return function () {
+        state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+        return state / 4294967296;
+      };
+    }
+
+    function shuffleWithSeed(items, seed) {
+      const arr = items.slice();
+      const rng = createSeededRng(seed);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
 
     function fetchWithTimeout(url, options = {}, timeoutMs = 4500) {
       const controller = new AbortController();
@@ -2016,19 +2047,28 @@
       }
     }
 
+    // Tour de mélange quotidien : mélange les thèmes et les flux selon la date, le tour (seed) et le compte
     function generateDailyAiVideos(levelObj, seedOffset = 0, customTopics = null) {
       if (!levelObj || levelObj.level === 0 || !levelObj.videosPerDay) return [];
       const todayKey = getTodayDateKey();
+      const userId = currentUser ? String(currentUser.contact || "") : "";
+      const baseSeed = hashStringSeed(`${todayKey}|L${levelObj.level}|seed:${seedOffset}|u:${userId}`);
+
+      const shuffledTopics = shuffleWithSeed(SHORT_VIDEOS_POOL, baseSeed ^ 0x9e3779b9);
+      const shuffledSources = shuffleWithSeed(VERIFIED_VIDEO_SOURCES, baseSeed ^ 0x85ebca6b);
+
       const list = [];
       for (let i = 0; i < levelObj.videosPerDay; i++) {
-        const fallback = SHORT_VIDEOS_POOL[(i + seedOffset) % SHORT_VIDEOS_POOL.length];
-        const aiItem = Array.isArray(customTopics) && customTopics[i] ? customTopics[i] : null;
-        const sourceUrl = VERIFIED_VIDEO_SOURCES[(i + seedOffset) % VERIFIED_VIDEO_SOURCES.length];
+        const topic = shuffledTopics[i % shuffledTopics.length];
+        const aiItem = Array.isArray(customTopics) && customTopics[i % customTopics.length] ? customTopics[i % customTopics.length] : null;
+        const sourceUrl = shuffledSources[i % shuffledSources.length];
+        const mixRound = (Number(seedOffset) || 1);
+
         list.push({
-          id: `${todayKey}-L${levelObj.level}-${i + 1}-${seedOffset}`,
-          title: (aiItem && aiItem.title) ? aiItem.title : `${fallback.title} (${todayKey} #${i + 1})`,
-          category: (aiItem && aiItem.category) ? aiItem.category : fallback.category,
-          brief: (aiItem && aiItem.brief) ? aiItem.brief : fallback.brief,
+          id: `${todayKey}-L${levelObj.level}-${i + 1}-R${mixRound}`,
+          title: (aiItem && aiItem.title) ? aiItem.title : `${topic.title} • Tour ${mixRound} #${i + 1}`,
+          category: (aiItem && aiItem.category) ? aiItem.category : topic.category,
+          brief: (aiItem && aiItem.brief) ? aiItem.brief : topic.brief,
           videoUrl: sourceUrl,
           durationSec: MIN_VIDEO_DURATION_SEC,
           reward: PRICE_PER_VIDEO,
@@ -2042,7 +2082,7 @@
 
     async function fetchGeminiVideoTopics(count, levelName, dateKey) {
       if (!GEMINI_API_KEY || !count) return null;
-      const sampleCount = Math.min(count, 10);
+      const sampleCount = Math.min(count, 8);
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
       const prompt = `Date du jour : ${dateKey}. Niveau : ${levelName}. Génère ${sampleCount} capsules vidéo quotidiennes (durée 1 minute minimum / 60s) variées et engageantes en français. Chaque objet doit contenir "title", "category" et "brief" (1 courte phrase).`;
 
@@ -2098,26 +2138,28 @@
       const prevBtnText = btn ? btn.textContent : "";
       if (btn) {
         btn.disabled = true;
-        btn.textContent = "Sync...";
+        btn.textContent = "Mélange...";
       }
       currentUser.aiSeed = (Number(currentUser.aiSeed) || 0) + 1;
 
       try {
         const aiTopics = await fetchGeminiVideoTopics(lvl.videosPerDay, lvl.name, today);
         currentUser.dailyVideos = generateDailyAiVideos(lvl, currentUser.aiSeed, aiTopics);
+        lastRenderedVideosSignature = "";
         renderDashboard(true, true);
         if (showFeedback) {
-          showAlert("dashAlert", `${lvl.videosPerDay} vidéos du jour (${today}) mises à jour par l'IA pour ${lvl.name}.`, "success");
+          showAlert("dashAlert", `Tour de mélange #${currentUser.aiSeed} : ${lvl.videosPerDay} vidéos prêtes pour ${lvl.name}.`, "success");
         }
       } catch {
         currentUser.dailyVideos = generateDailyAiVideos(lvl, currentUser.aiSeed);
+        lastRenderedVideosSignature = "";
         renderDashboard(true, true);
         if (showFeedback) {
-          showAlert("dashAlert", `${lvl.videosPerDay} vidéos du jour (${today}) chargées pour ${lvl.name}.`, "success");
+          showAlert("dashAlert", `Tour de mélange #${currentUser.aiSeed} : ${lvl.videosPerDay} vidéos mélangées pour ${lvl.name}.`, "success");
         }
       } finally {
         if (btn) {
-          btn.textContent = prevBtnText || "Sync IA du Jour";
+          btn.textContent = prevBtnText || "Mélanger / Sync Jour";
           btn.disabled = currentUser.dailyTaskCompletedDate === today || !getTaskAvailabilityStatus().allowed;
         }
       }
@@ -2196,7 +2238,7 @@
         return `État en temps réel (${live.contact}) : ${live.levelName}, solde ${live.balance.toLocaleString("fr-FR")} FCFA, bonus parrainage ${live.commission.toLocaleString("fr-FR")} FCFA, ${live.myReferralsCount} filleul(s) direct(s). Plateforme : ${live.totalAccounts} compte(s), ${live.pendingDep} dépôt(s) en attente, ${live.pendingRet} retrait(s) en attente.`;
       }
       if (q.includes("durée") || q.includes("duree") || q.includes("minute") || q.includes("60s") || q.includes("vidéo") || q.includes("video")) {
-        return "Chaque vidéo de tâche dure au minimum 1 minute (60 secondes) pour 100 FCFA par vidéo, mise à jour chaque jour par l'IA, accessible dès 9h00 du lundi au samedi (repos le dimanche) avec un niveau payant actif (valable 365 jours).";
+        return "Chaque vidéo de tâche dure au minimum 1 minute (60 secondes) pour 100 FCFA par vidéo, mélangée chaque jour par tours, accessible dès 9h00 du lundi au samedi (repos le dimanche) avec un niveau payant actif (valable 365 jours).";
       }
       return `Assistant IA GTA VI (temps réel) : ${live.levelName}, solde ${live.balance.toLocaleString("fr-FR")} FCFA. Dépôts/retraits en attente jusqu'à validation admin. Groupe WhatsApp : ${live.whatsappGroup} • Service client : ${live.supportPhone} • Dépôt Airtel : ${live.airtelDeposit}.`;
     }
@@ -2222,7 +2264,7 @@ Règles officielles GTA VI :
 2) Groupe WhatsApp officiel : ${live.whatsappGroup}.
 3) Service client : ${live.supportPhone}.
 4) Dépôts : Airtel Money actif sur le numéro ${live.airtelDeposit} ; Moov, MTN et Orange seront disponibles ultérieurement.
-5) Vidéos de tâche : durée d'1 minute minimum (60 secondes), 100 FCFA/vidéo, mises à jour chaque jour par l'IA, 1 fois/jour dès 9h00 du lundi au samedi (repos le dimanche), niveau payant GTA VI 1 à GTA VI 7 requis (valable 365 jours ; nouveaux comptes = Niveau 0).
+5) Vidéos de tâche : durée d'1 minute minimum (60 secondes), 100 FCFA/vidéo, mélangées chaque jour par tours, 1 fois/jour dès 9h00 du lundi au samedi (repos le dimanche), niveau payant GTA VI 1 à GTA VI 7 requis (valable 365 jours ; nouveaux comptes = Niveau 0).
 6) Bonus parrainage automatique de 10% à l'achat d'un niveau. Retraits : min. 1 000 FCFA, frais 5%, 9h–17h lun–sam.`;
 
       try {
@@ -2552,7 +2594,7 @@ Règles officielles GTA VI :
       document.getElementById("taskScheduleNotice").textContent = sched.reason;
 
       const refreshBtn = document.getElementById("refreshAiBtn");
-      if (refreshBtn && refreshBtn.textContent !== "Sync...") {
+      if (refreshBtn && refreshBtn.textContent !== "Mélange...") {
         refreshBtn.disabled = completedToday || !sched.allowed;
       }
 
@@ -2842,7 +2884,7 @@ Règles officielles GTA VI :
         renderDashboard(true, true);
         showAlert(
           "dashAlert",
-          `${lvl.name} acheté pour 365 jours ! Vos vidéos quotidiennes IA sont prêtes.`,
+          `${lvl.name} acheté pour 365 jours ! Vos vidéos quotidiennes mélangées sont prêtes.`,
           "success"
         );
 
@@ -2861,25 +2903,118 @@ Règles officielles GTA VI :
       }
     }
 
+    function stopCanvasStream() {
+      if (canvasAnimFrameId) {
+        cancelAnimationFrame(canvasAnimFrameId);
+        canvasAnimFrameId = null;
+      }
+      const canvas = document.getElementById("liveStreamCanvas");
+      if (canvas) canvas.classList.add("hidden");
+    }
+
+    function startCanvasStream(titleText, fluxNum) {
+      const player = document.getElementById("shortVideoPlayer");
+      const canvas = document.getElementById("liveStreamCanvas");
+      if (!canvas) return;
+      if (player) player.classList.add("hidden");
+      canvas.classList.remove("hidden");
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const startTime = performance.now();
+      function draw(now) {
+        const t = (now - startTime) / 1000;
+        const w = canvas.width;
+        const h = canvas.height;
+
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, "#150e2e");
+        grad.addColorStop(0.5, "#261248");
+        grad.addColorStop(1, "#0b2433");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        for (let i = 0; i < 6; i++) {
+          const cx = ((w * 0.15) + i * (w * 0.14) + Math.sin(t * 1.4 + i) * 18) % w;
+          const cy = (h * 0.5) + Math.cos(t * 1.8 + i * 1.1) * 28;
+          ctx.beginPath();
+          ctx.arc(cx, cy, 10 + (i % 3) * 4, 0, Math.PI * 2);
+          ctx.fillStyle = i % 2 === 0 ? "rgba(44, 252, 240, 0.32)" : "rgba(255, 42, 133, 0.32)";
+          ctx.fill();
+        }
+
+        const barCount = 24;
+        const barW = (w - 40) / barCount;
+        for (let b = 0; b < barCount; b++) {
+          const amp = 12 + Math.abs(Math.sin(t * 4.5 + b * 0.45)) * 42;
+          ctx.fillStyle = b % 3 === 0 ? "#ffc82c" : "#2cfcf0";
+          ctx.fillRect(20 + b * barW, h - 22 - amp, barW - 3, amp);
+        }
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "800 14px system-ui, sans-serif";
+        ctx.fillText(`GTA VI • Flux #${fluxNum} (Lecture Continue 1 min+)`, 16, 26);
+        ctx.fillStyle = "#2cfcf0";
+        ctx.font = "600 12px monospace";
+        ctx.fillText(`Temps écoulé : ${Math.floor(t)}s / 60s`, 16, 46);
+
+        canvasAnimFrameId = requestAnimationFrame(draw);
+      }
+
+      if (canvasAnimFrameId) cancelAnimationFrame(canvasAnimFrameId);
+      canvasAnimFrameId = requestAnimationFrame(draw);
+    }
+
     function applyVideoSourceToPlayer(vid, srcIndex) {
       const player = document.getElementById("shortVideoPlayer");
       const statusEl = document.getElementById("videoStreamStatus");
       if (!player || !vid) return;
+
+      stopCanvasStream();
+      player.classList.remove("hidden");
 
       const safeIdx = ((srcIndex % VERIFIED_VIDEO_SOURCES.length) + VERIFIED_VIDEO_SOURCES.length) % VERIFIED_VIDEO_SOURCES.length;
       activeSourceIdx = safeIdx;
       const url = VERIFIED_VIDEO_SOURCES[safeIdx];
       vid.videoUrl = url;
 
-      if (statusEl) statusEl.textContent = `Flux actif #${safeIdx + 1} • Lecture en cours...`;
+      if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1}/${VERIFIED_VIDEO_SOURCES.length} • Démarrage...`;
+
+      let started = false;
+      const fallbackTimer = setTimeout(() => {
+        if (!started && activeVideoIndex !== null) {
+          if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} lent • Lecture continue active`;
+          startCanvasStream(vid.title, safeIdx + 1);
+        }
+      }, 2500);
+
+      player.onplaying = () => {
+        started = true;
+        clearTimeout(fallbackTimer);
+        if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1}/${VERIFIED_VIDEO_SOURCES.length} en lecture`;
+      };
+
+      player.onerror = () => {
+        clearTimeout(fallbackTimer);
+        if (activeVideoIndex !== null) {
+          if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} indisponible • Lecture continue active`;
+          startCanvasStream(vid.title, safeIdx + 1);
+        }
+      };
 
       player.pause();
       player.src = url;
       player.load();
       player.play().then(() => {
-        if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} en lecture (1 min+ requis)`;
+        started = true;
+        clearTimeout(fallbackTimer);
+        if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1}/${VERIFIED_VIDEO_SOURCES.length} en lecture`;
       }).catch(() => {
-        if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} prêt — appuyez sur lecture dans le lecteur`;
+        if (activeVideoIndex !== null) {
+          startCanvasStream(vid.title, safeIdx + 1);
+          if (statusEl) statusEl.textContent = `Flux #${safeIdx + 1} en lecture continue (1 min+)`;
+        }
       });
     }
 
@@ -2903,7 +3038,6 @@ Règles officielles GTA VI :
       vid.durationSec = requiredSec;
 
       const modal = document.getElementById("videoModal");
-      const player = document.getElementById("shortVideoPlayer");
       const confirmBtn = document.getElementById("confirmWatchBtn");
       const progressFill = document.getElementById("modalProgressFill");
       const timerText = document.getElementById("modalTimerText");
@@ -2922,10 +3056,6 @@ Règles officielles GTA VI :
 
       const initialIdx = VERIFIED_VIDEO_SOURCES.indexOf(vid.videoUrl);
       applyVideoSourceToPlayer(vid, initialIdx >= 0 ? initialIdx : index);
-
-      player.onerror = () => {
-        switchVideoSourceFallback();
-      };
 
       clearInterval(videoTimerInterval);
       modal.classList.remove("hidden");
@@ -2962,8 +3092,10 @@ Règles officielles GTA VI :
 
     function closeVideoModal() {
       clearInterval(videoTimerInterval);
+      stopCanvasStream();
       const player = document.getElementById("shortVideoPlayer");
       if (player) {
+        player.onplaying = null;
         player.onerror = null;
         player.pause();
         player.removeAttribute("src");
